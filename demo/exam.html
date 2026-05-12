@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tinyproctor.js demo exam</title>
+    <style>
+      body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0B1220;color:#E6EDF7;margin:0;padding:24px}
+      .card{background:#0F1B33;border:1px solid rgba(255,255,255,0.10);border-radius:12px;padding:16px;max-width:860px}
+      .row{display:flex;gap:12px;flex-wrap:wrap;margin-top:12px}
+      button{appearance:none;border:1px solid rgba(255,255,255,0.16);background:rgba(79,140,255,0.18);color:#E6EDF7;border-radius:10px;padding:10px 12px;cursor:pointer}
+      button:hover{background:rgba(79,140,255,0.26)}
+      pre{background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.10);border-radius:12px;padding:12px;overflow:auto;max-height:320px}
+      .muted{color:#A9B7D0;font-size:12px;line-height:1.4}
+      code{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1 style="margin:0 0 8px 0;font-size:20px">tinyproctor.js demo</h1>
+      <div class="muted">Try: switch tabs, click away, resize, toggle fullscreen, press F12 / Ctrl+Shift+I.</div>
+
+      <div class="row">
+        <button id="fs">Request fullscreen</button>
+        <button id="exit">Exit fullscreen</button>
+        <button id="state">Print local state</button>
+        <button id="custom">Add custom violation</button>
+      </div>
+
+      <h2 style="margin:16px 0 8px 0;font-size:14px">State snapshot</h2>
+      <pre id="out">(click “Print local state”)</pre>
+    </div>
+
+    <script
+      src="/tinyproctor.js"
+      data-tinyproctor
+      data-endpoint="/collect"
+      data-exam-id="DEMO_EXAM"
+      data-attempt-id="DEMO_ATTEMPT_001"
+      data-candidate-label="demo_candidate"
+      data-silent="false"
+      data-heartbeat-ms="30000"
+      data-weights='{"tab_hidden":10,"window_blur":5,"fullscreen_exit":25,"devtools_key":20,"devtools_resize":15,"custom":7}'
+    ></script>
+
+    <script>
+      (function () {
+        var out = document.getElementById('out')
+        function print(obj) {
+          out.textContent = JSON.stringify(obj, null, 2)
+        }
+        document.getElementById('fs').addEventListener('click', function () {
+          var inst = window.TinyProctor && window.TinyProctor.get && window.TinyProctor.get()
+          if (inst && inst.requestFullscreen) inst.requestFullscreen()
+        })
+        document.getElementById('exit').addEventListener('click', function () {
+          var inst = window.TinyProctor && window.TinyProctor.get && window.TinyProctor.get()
+          if (inst && inst.exitFullscreen) inst.exitFullscreen()
+        })
+        document.getElementById('state').addEventListener('click', function () {
+          var inst = window.TinyProctor && window.TinyProctor.get && window.TinyProctor.get()
+          if (inst && inst.getState) print(inst.getState())
+        })
+        document.getElementById('custom').addEventListener('click', function () {
+          var inst = window.TinyProctor && window.TinyProctor.get && window.TinyProctor.get()
+          if (inst && inst.markViolation) inst.markViolation('custom', { note: 'manual' })
+          if (inst && inst.getState) print(inst.getState())
+        })
+      })()
+    </script>
+  </body>
+</html>
+
