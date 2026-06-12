@@ -1,0 +1,111 @@
+# tinyproctor.js
+
+> Minimal, self-hosted, dependency-free browser integrity monitoring for online exams.
+> One static JS file + one collector endpoint you implement. MIT license. v1.0.0.
+
+This file is the implementation contract for AI agents integrating tinyproctor.js.
+
+## Files
+
+- Library (minified, ~16 KB raw / ~6 KB gzipped): https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js
+- Library (readable source): https://tanzir71.github.io/tinyproctorjs/tinyproctor.js
+- Human docs: https://tanzir71.github.io/tinyproctorjs/docs.html
+- Repo: https://github.com/tanzir71/tinyproctorjs
+
+## Integration steps
+
+1. Download tinyproctor.min.js and serve it from the project's own static assets (same origin preferred; no CDN required).
+2. Add this tag to the exam/quiz page template (server-render the real IDs):
+
+```html
+<script src="/js/tinyproctor.min.js" data-tinyproctor
+  data-endpoint="/collect"
+  data-exam-id="EXAM_ID_HERE"
+  data-attempt-id="ATTEMPT_ID_HERE"
+  data-candidate-label="PSEUDONYMOUS_USER_ID"></script>
+```
+
+Monitoring auto-starts on load. No init call needed unless `data-autoinit="false"`.
+
+3. Implement the collector endpoint (POST, same origin or CORS-enabled).
+
+## Collector contract
+
+The client POSTs JSON batches (Content-Type: application/json; also sent via
+navigator.sendBeacon on page close — accept both). Respond 2xx to acknowledge;
+non-2xx responses are retried with exponential backoff (at-least-once delivery —
+dedupe on sessionId + clientTime + eventType + violationKey if needed).
+
+Request body:
+
+```json
+{
+  "schemaVersion": 1,
+  "clientVersion": "1.0.0",
+  "kind": "batch",
+  "sessionId": "tp_...",
+  "examId": "...",
+  "attemptId": "...",
+  "candidateLabel": "...",
+  "sentAt": "ISO-8601",
+  "userAgent": "...",
+  "language": "en-US",
+  "screen": { "w": 1920, "h": 1080 },
+  "timezoneOffsetMin": -360,
+  "events": [
+    {
+      "clientTime": "ISO-8601",
+      "eventType": "heartbeat|visibility|focus|fullscreen|devtools|clipboard|contextmenu|print|idle|custom",
+      "violationKey": "tab_hidden|window_blur|fullscreen_exit|devtools_key|devtools_resize|copy_attempt|cut_attempt|paste_attempt|context_menu|print_attempt|page_idle|custom or null",
+      "eventData": {},
+      "pageUrl": "...",
+      "visibilityState": "...",
+      "hasFocus": true,
+      "isFullscreen": false,
+      "violationCount": 0,
+      "integrityScore": 100
+    }
+  ]
+}
+```
+
+Store at minimum: attemptId, sessionId, clientTime, eventType, violationKey,
+integrityScore, violationCount, eventData (JSON), received_at. Index by attemptId.
+
+Validation recommendations: verify attemptId belongs to an active attempt,
+rate-limit per session, cap body at ~1 MB, reject events for submitted/expired attempts.
+
+CORS: only needed if collector origin differs from exam page origin. Then handle
+OPTIONS preflight and send Access-Control-Allow-Origin + Allow-Headers: Content-Type.
+sendBeacon sends no custom headers and skips preflight.
+
+## Key config (data-* attributes on the script tag)
+
+- data-endpoint (required for reporting) — collector URL
+- data-exam-id, data-attempt-id (recommended), data-candidate-label
+- data-silent (default true; false shows a live score badge)
+- data-heartbeat-ms (default 30000)
+- data-idle-ms (default 60000), data-idle (default true)
+- data-clipboard / data-contextmenu / data-print / data-devtools (default true)
+- data-block-clipboard / data-block-contextmenu (default false — set true to prevent, not just detect)
+- data-weights — JSON, e.g. '{"tab_hidden":20,"paste_attempt":25}' (unlisted keys keep defaults)
+- data-format="form" — sends payload=<urlencoded json> for legacy PHP backends
+- data-autoinit="false" — then call TinyProctor.init({...}) yourself
+
+## JS API (optional)
+
+- TinyProctor.init(config) / TinyProctor.get() / TinyProctor.destroy()
+- instance.getState() → { integrityScore, violationCount, violationCounts, recentViolations, ... }
+- instance.markViolation(key, data) — custom violations
+- instance.requestFullscreen(el) — call from a user gesture
+- config.onViolation(key, data, state) and config.onEvent(payload) callbacks
+
+## Scoring
+
+score = clamp(100 − Σ(weight × count), 0, 100). Default weights: tab_hidden 10,
+window_blur 5, fullscreen_exit 25, devtools_key 20, devtools_resize 15,
+copy_attempt 10, cut_attempt 10, paste_attempt 15, context_menu 5,
+print_attempt 10, page_idle 5.
+
+Important: scores are triage signals for human review, not proof of cheating.
+Never auto-fail a candidate from a client-side event alone.

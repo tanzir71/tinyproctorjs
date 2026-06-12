@@ -14,7 +14,18 @@ No webcam. No extensions. No vendor cloud. No per-student fees. MIT licensed.
 
 ## Quick start
 
-Host `tinyproctor.min.js` (~6 KB gzipped) on your own domain and embed it on the exam page:
+**Fastest path — ask your AI agent** (Claude, Copilot, Cursor, etc.):
+
+> Add tinyproctor.js exam integrity monitoring to my project: fetch
+> https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js into my static assets,
+> add its script tag to my exam page with data-endpoint pointing at a new /collect
+> endpoint, and implement /collect per https://tanzir71.github.io/tinyproctorjs/llms.txt
+
+The machine-readable integration contract lives at [`/llms.txt`](https://tanzir71.github.io/tinyproctorjs/llms.txt).
+
+**One command:** `curl -LO https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js`
+
+**Manual:** host `tinyproctor.min.js` (~6 KB gzipped) on your own domain and embed it on the exam page:
 
 ```html
 <script
@@ -104,7 +115,7 @@ npm install jsdom           # once
 node test/run-tests.mjs     # run the 54-test suite
 ```
 
-`docs/` is the GitHub Pages site; root files are the source of truth. After changing pages or the library, re-copy them into `docs/`.
+`docs/` is the GitHub Pages site; root files are the source of truth. After changing pages or the library, re-copy them into `docs/`. The vendor comparison pages are generated: `python3 build-alt-pages.py && python3 build-restyle.py` (generator + Volt design-system patcher).
 
 Minified build: `npx terser tinyproctor.js --compress --mangle --comments "/^!/" -o tinyproctor.min.js`
 

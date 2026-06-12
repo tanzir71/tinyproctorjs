@@ -23,43 +23,43 @@
     </script>
     <style>
         :root {
-            --bg: #ffffff; --fg: #09090b; --muted: #52525b; --muted-2: #71717a;
-            --border: #e4e4e7; --panel: #ffffff; --hover: #fafafa; --focus: #09090b;
+            --bg: #f4f3ee; --fg: #0a0a0a; --muted: #6b6b66; --muted-2: #8a877e;
+            --border: #cfcdc4; --panel: #fbfaf6; --hover: #ebe9e1; --focus: #2540ff;
         }
         * { box-sizing: border-box; }
         html { scroll-behavior: smooth; scroll-padding-top: 80px; }
         body {
             margin: 0; background: var(--bg); color: var(--fg);
-            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            font-family: "Inter", "Inter Tight", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
             line-height: 1.6;
         }
         a { color: inherit; text-decoration: none; }
         .container { margin: 0 auto; max-width: 1152px; padding: 0 16px; }
         header {
             position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border);
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px);
+            background: rgba(244, 243, 238, 0.9); backdrop-filter: blur(10px);
         }
         .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; }
         .brand { display: inline-flex; align-items: center; gap: 12px; }
-        .logo { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); }
-        .logo span { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+        .logo { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 0; border: 1px solid var(--border); }
+        .logo span { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
         .brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
         nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
-        .nav-link { display: inline-flex; height: 36px; align-items: center; border-radius: 8px; padding: 0 8px; color: var(--muted); }
+        .nav-link { display: inline-flex; height: 36px; align-items: center; border-radius: 0; padding: 0 8px; color: var(--muted); }
         .nav-link:hover, .nav-link[aria-current="page"] { background: var(--hover); color: var(--fg); }
         .btn {
             display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 14px;
-            border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--fg);
+            border-radius: 0; border: 1px solid var(--border); background: var(--bg); color: var(--fg);
             font-size: 14px; font-weight: 500;
         }
         .btn:hover { background: var(--hover); }
         .btn-primary { background: var(--fg); border-color: var(--fg); color: #fff; }
-        .btn-primary:hover { background: #18181b; }
-        .mono, code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-        code { font-size: 0.9em; background: var(--hover); border: 1px solid var(--border); border-radius: 6px; padding: 1px 5px; }
+        .btn-primary:hover { background: #2540ff; }
+        .mono, code { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; }
+        code { font-size: 0.9em; background: var(--hover); border: 1px solid var(--border); border-radius: 0; padding: 1px 5px; }
         pre {
-            background: #0f172a; color: #e2e8f0; border-radius: 12px; padding: 16px;
-            font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 12px 0 0;
+            background: #0c0d0e; color: #f4f3ee; border-radius: 0; padding: 16px;
+            font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 14px 0 6px;
         }
         pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
         .layout { display: grid; grid-template-columns: 1fr; gap: 32px; padding: 40px 0 80px; }
@@ -71,12 +71,14 @@
         .toc a:hover { color: var(--fg); }
         h1 { margin: 0; font-size: 34px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; }
         .lead { margin-top: 12px; font-size: 16px; color: var(--muted); max-width: 640px; }
-        h2 { margin: 48px 0 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; padding-top: 8px; border-top: 1px solid var(--border); }
-        section > h2:first-child { border-top: none; margin-top: 0; }
-        h3 { margin: 24px 0 0; font-size: 16px; font-weight: 600; }
+        h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+        article section { margin-top: 72px; border-top: 1px solid var(--border); padding-top: 36px; }
+        article section:first-of-type { margin-top: 48px; }
+        section h2 + h2, section h2:not(:first-child) { margin-top: 40px; border-top: 1px solid var(--rule-soft, var(--border)); padding-top: 24px; }
+        h3 { margin: 32px 0 0; font-size: 16px; font-weight: 600; }
         p { margin: 10px 0 0; font-size: 14.5px; color: var(--muted); max-width: 720px; }
         p strong { color: var(--fg); }
-        .table-wrap { overflow-x: auto; margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; }
+        .table-wrap { overflow-x: auto; margin: 16px 0 6px; border: 1px solid var(--border); border-radius: 0; }
         table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 13.5px; }
         thead th {
             text-align: left; font-size: 11.5px; letter-spacing: 0.07em; text-transform: uppercase;
@@ -88,7 +90,7 @@
         tbody td strong { color: var(--fg); }
         .callout {
             margin-top: 16px; border: 1px solid var(--border); border-left: 3px solid var(--fg);
-            border-radius: 10px; padding: 12px 16px; font-size: 14px; color: var(--muted); max-width: 720px;
+            border-radius: 0; padding: 12px 16px; font-size: 14px; color: var(--muted); max-width: 720px;
         }
         .callout strong { color: var(--fg); }
         ul { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 14.5px; }
@@ -113,7 +115,7 @@
                 <a class="nav-link" href="./docs.html" aria-current="page">Docs</a>
                 <a class="nav-link" href="./compare.html">Compare</a>
                 <a class="nav-link" href="./demo/exam.html">Demo</a>
-                <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+                <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
             </nav>
         </div>
     </header>
@@ -143,7 +145,27 @@
 
             <section id="quick-start">
                 <h2>Quick start</h2>
-                <p><strong>1. Host the script.</strong> Download <code>tinyproctor.min.js</code> (~6&nbsp;KB gzipped) from the <a href="https://github.com/tanzir71/tinyproctorjs" style="text-decoration:underline;">GitHub repo</a> and serve it from your own domain. No CDN, no third-party calls.</p>
+                <p>Two steps, however you work: <strong>get the file</strong> and <strong>add the tag</strong> — then give your server a place to receive events. Pick whichever path fits you.</p>
+
+                <h3>Path A — ask your AI agent (recommended)</h3>
+                <p>Using Claude, Copilot, Cursor or any coding agent? Paste this prompt and it will wire everything into your stack, including the collector:</p>
+<pre><code>Add tinyproctor.js exam integrity monitoring to my project:
+1. Fetch https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js
+   and add it to my static assets.
+2. Add its script tag to my exam/quiz page with data-endpoint pointing
+   at a new /collect endpoint, plus my real exam and attempt IDs.
+3. Implement /collect for my backend following
+   https://tanzir71.github.io/tinyproctorjs/llms.txt — store events with
+   attemptId, violationKey and integrityScore so I can review attempts.</code></pre>
+                <p>The full machine-readable integration contract lives at <a href="./llms.txt" style="text-decoration:underline;">/llms.txt</a> — payload schema, config reference, and validation rules in one plain-text file any agent can read.</p>
+
+                <h3>Path B — one command</h3>
+                <p>The library is a single static file. Download it straight into your project's assets:</p>
+<pre><code>curl -LO https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js</code></pre>
+                <p>Want the repo with the demo server and test suite too? <code>git clone https://github.com/tanzir71/tinyproctorjs</code></p>
+
+                <h3>Path C — manual</h3>
+                <p><strong>1. Host the script.</strong> Serve <code>tinyproctor.min.js</code> (~6&nbsp;KB gzipped) from your own domain. No CDN, no third-party calls.</p>
                 <p><strong>2. Embed it on the exam page.</strong></p>
 <pre><code>&lt;script
   src="/js/tinyproctor.min.js"
@@ -153,8 +175,8 @@
   data-attempt-id="ATTEMPT_12345"
   data-candidate-label="student_42"&gt;
 &lt;/script&gt;</code></pre>
-                <p><strong>3. Receive events.</strong> The script batches events and POSTs JSON to your <code>data-endpoint</code>. See <a href="#collector" style="text-decoration:underline;">Building a collector</a> for copy-paste PHP and Node.js examples.</p>
-                <p>That's the whole integration. Monitoring starts automatically as soon as the script loads — no init call needed.</p>
+                <p><strong>3. Receive events.</strong> The script batches events and POSTs JSON to your <code>data-endpoint</code>. A complete collector is ~30 lines — copy-paste the <a href="#collector" style="text-decoration:underline;">PHP or Node.js examples</a> below.</p>
+                <p>Monitoring starts automatically as soon as the script loads — no init call needed.</p>
             </section>
 
             <section id="what-it-detects">
@@ -318,6 +340,64 @@
 
             <section id="collector">
                 <h2>Building a collector</h2>
+                <p>The collector is the only server-side piece: an endpoint that accepts JSON batches and stores them. Any stack works.</p>
+                <div style="border:1px solid var(--border); background:var(--panel); overflow-x:auto; margin-top:16px;">
+                <svg viewBox="0 0 900 270" style="display:block; min-width:640px; width:100%; height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, SF Mono, ui-monospace, Menlo, Consolas, monospace" role="img" aria-label="Isometric diagram: exam page posts batches to your collect endpoint, which stores rows for review.">
+                    <defs>
+                        <pattern id="dgrid" width="36" height="36" patternUnits="userSpaceOnUse">
+                            <path d="M36 0H0V36" fill="none" stroke="#e4e6ea" stroke-width="1"/>
+                        </pattern>
+                        <marker id="darr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                            <path d="M0 0 L10 5 L0 10 Z" fill="#0a0b0d"/>
+                        </marker>
+                    </defs>
+                    <rect width="900" height="270" fill="#fbfaf6"/>
+                    <rect width="900" height="270" fill="url(#dgrid)"/>
+                    <text x="22" y="26" font-size="10" letter-spacing="2" fill="#9aa0ac">TP/ARCH·02</text>
+                    <text x="878" y="26" font-size="10" letter-spacing="2" fill="#9aa0ac" text-anchor="end">SELF-HOSTED</text>
+
+                    <g transform="translate(140,86)">
+                        <path d="M0 0 L104 60 L37 99 L-67 39 Z" fill="#f4f5f7" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M104 60 L104 72 L37 111 L37 99 Z" fill="#dfe2e8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M-67 39 L-67 51 L37 111 L37 99 Z" fill="#c8ccd4" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M7 10 L92 59 L34 92 L-51 43 Z" fill="#0b25a8" stroke="#0a0b0d" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M17 19 L45 35 L29 44 L1 28 Z" fill="#1742ff"/>
+                        <text x="18" y="146" font-size="11" letter-spacing="2" fill="#0a0b0d" text-anchor="middle" font-weight="600">EXAM PAGE</text>
+                        <text x="18" y="162" font-size="9" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">SCRIPT TAG</text>
+                    </g>
+
+                    <path d="M280 150 H372" fill="none" stroke="#0a0b0d" stroke-width="2" marker-end="url(#darr)"/>
+                    <text x="326" y="136" font-size="9" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">POST /collect</text>
+                    <text x="326" y="170" font-size="9" letter-spacing="1.5" fill="#9aa0ac" text-anchor="middle">JSON BATCH</text>
+
+                    <g transform="translate(455,76)">
+                        <path d="M0 -8 L48 20 L0 48 L-48 20 Z" fill="#1742ff" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M48 20 L48 76 L0 104 L0 48 Z" fill="#1330d0" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M-48 20 L-48 76 L0 104 L0 48 Z" fill="#0b25a8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                        <text x="0" y="146" font-size="11" letter-spacing="2" fill="#0a0b0d" text-anchor="middle" font-weight="600">COLLECTOR</text>
+                        <text x="0" y="162" font-size="9" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">~30 LINES · PHP / NODE</text>
+                    </g>
+
+                    <path d="M540 150 H630" fill="none" stroke="#0a0b0d" stroke-width="2" marker-end="url(#darr)"/>
+                    <text x="585" y="136" font-size="9" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">INSERT</text>
+
+                    <g transform="translate(728,84)">
+                        <g transform="translate(0,40)">
+                            <path d="M0 0 L78 45 L22 77 L-56 32 Z" fill="#dfe2e8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M78 45 L78 60 L22 92 L22 77 Z" fill="#c8ccd4" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M-56 32 L-56 47 L22 92 L22 77 Z" fill="#9aa0ac" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                        </g>
+                        <g>
+                            <path d="M0 0 L78 45 L22 77 L-56 32 Z" fill="#f4f5f7" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M78 45 L78 60 L22 92 L22 77 Z" fill="#dfe2e8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M-56 32 L-56 47 L22 92 L22 77 Z" fill="#c8ccd4" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <circle cx="-32" cy="34" r="4" fill="#2bd4a4" stroke="#0a0b0d" stroke-width="1.5"/>
+                        </g>
+                        <text x="11" y="160" font-size="11" letter-spacing="2" fill="#0a0b0d" text-anchor="middle" font-weight="600">STORE + REVIEW</text>
+                        <text x="11" y="176" font-size="9" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">SQLITE · NDJSON · YOUR DB</text>
+                    </g>
+                </svg>
+                </div>
                 <h3>PHP + SQLite (single file)</h3>
 <pre><code>&lt;?php // collect.php
 header('Access-Control-Allow-Origin: https://exams.school.edu');
@@ -426,19 +506,19 @@ createServer((req, res) =&gt; {
                 <h3>Can candidates fake a perfect score?</h3>
                 <p>A sufficiently technical candidate can — this is true of every client-side tool. Use heartbeat gaps and missing-session detection server-side to flag tampering: a session with no events at all is itself a red flag.</p>
                 <h3>Is it really free?</h3>
-                <p>Yes — MIT licensed, free for commercial use. If it saves you a vendor contract, consider <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;">buying me a coffee</a> to support maintenance.</p>
+                <p>Yes — MIT licensed, free for commercial use. If it saves you a vendor contract, consider <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;" target="_blank" rel="noopener">buying me a coffee</a> to support maintenance.</p>
             </section>
         </article>
     </main>
 
     <footer>
         <div class="container footer-inner">
-            <div class="footer-note">tinyproctor.js — free &amp; open source. Built by <a href="https://tanziro.com" style="text-decoration:underline;">tanziro.com</a> · <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;">Buy me a coffee</a></div>
+            <div class="footer-note">tinyproctor.js — free &amp; open source. Built by <a href="https://tanziro.com" style="text-decoration:underline;" target="_blank" rel="noopener">tanziro.com</a> · <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;" target="_blank" rel="noopener">Buy me a coffee</a></div>
             <div class="footer-links">
                 <a href="./index.html">Home</a>
                 <a href="./demo/exam.html">Demo</a>
                 <a href="./compare.html">Compare</a>
-                <a href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+                <a href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
             </div>
         </div>
     </footer>

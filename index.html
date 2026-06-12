@@ -32,85 +32,155 @@
     </script>
     <style>
         :root {
-            --bg: #ffffff; --fg: #09090b; --muted: #52525b; --muted-2: #71717a;
-            --border: #e4e4e7; --panel: #ffffff; --hover: #fafafa; --focus: #09090b;
+            --bg: #f4f3ee;
+            --bg-alt: #ebe9e1;
+            --fg: #0a0a0a;
+            --muted: #6b6b66;
+            --muted-2: #8a877e;
+            --faint: #a8a59c;
+            --border: #cfcdc4;
+            --border-soft: #e3e1d8;
+            --panel: #fbfaf6;
+            --acc: #2540ff;
+            --acc-soft: #c8d0ff;
+            --dk-bg: #0c0d0e;
+            --dk-bg-2: #131416;
+            --dk-ink: #f4f3ee;
+            --dk-mute: #8e8f88;
+            --dk-rule: #232527;
+            --f-sans: "Inter", "Inter Tight", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
+            --f-mono: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
         }
         * { box-sizing: border-box; }
         html { scroll-behavior: smooth; }
-        body { margin: 0; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; line-height: 1.5; }
+        body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--f-sans); line-height: 1.5; }
         a { color: inherit; text-decoration: none; }
-        a:hover { color: var(--fg); }
-        .container { margin: 0 auto; max-width: 1152px; padding: 0 16px; }
+        .container { margin: 0 auto; max-width: 1152px; padding: 0 20px; }
         .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
-        .skip:focus { position: fixed; left: 16px; top: 16px; z-index: 9999; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: normal; border: 1px solid var(--border); background: var(--bg); padding: 8px 12px; border-radius: 8px; font-size: 14px; }
-        header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); }
+        .skip:focus { position: fixed; left: 16px; top: 16px; z-index: 9999; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: normal; border: 1px solid var(--fg); background: var(--bg); padding: 8px 12px; font-size: 14px; }
+        .mono { font-family: var(--f-mono); }
+
+        /* eyebrow: blue square + tracked mono caps */
+        .eyebrow { display: inline-flex; align-items: center; gap: 12px; font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted); }
+        .eyebrow::before { content: ""; width: 12px; height: 12px; background: var(--acc); flex: none; }
+
+        header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border); background: rgba(244, 243, 238, 0.92); backdrop-filter: blur(10px); }
         .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; }
         .brand { display: inline-flex; align-items: center; gap: 12px; }
-        .logo { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); }
-        .logo span { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; }
+        .logo { display: grid; place-items: center; width: 34px; height: 34px; background: var(--fg); }
+        .logo span { font-family: var(--f-mono); font-size: 11px; color: var(--bg); letter-spacing: 0.05em; }
         .brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
-        nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; font-size: 14px; }
-        .nav-link { display: inline-flex; height: 36px; align-items: center; border-radius: 8px; padding: 0 8px; color: var(--muted); transition: background-color 120ms ease, color 120ms ease; }
-        .nav-link:hover { background: var(--hover); color: var(--fg); }
-        .btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--fg); font-size: 14px; font-weight: 500; transition: background-color 120ms ease, border-color 120ms ease; cursor: pointer; font-family: inherit; }
-        .btn:hover { background: var(--hover); }
-        .btn-primary { background: var(--fg); border-color: var(--fg); color: #fff; }
-        .btn-primary:hover { background: #18181b; border-color: #18181b; }
-        main { display: block; }
-        .hero { position: relative; overflow: hidden; }
-        .hero::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at top, rgba(0,0,0,0.06), transparent 55%); pointer-events: none; }
-        .hero-inner { position: relative; padding: 72px 0 72px; }
-        .hero-grid { display: grid; grid-template-columns: 1fr; gap: 40px; align-items: center; }
-        @media (min-width: 960px) { .hero-grid { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); } }
-        .pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--bg); padding: 6px 12px; font-size: 12px; color: var(--muted); }
-        .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-        h1 { margin: 10px 0 0; font-size: 40px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; text-wrap: balance; }
-        @media (min-width: 640px) { h1 { font-size: 50px; } }
-        .lead { margin-top: 16px; max-width: 560px; font-size: 16px; line-height: 1.75; color: var(--muted); text-wrap: pretty; }
-        @media (min-width: 640px) { .lead { font-size: 18px; } }
-        .cta-row { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-        .stats { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 24px; }
-        .stat .num { font-size: 22px; font-weight: 650; letter-spacing: -0.02em; }
-        .stat .lbl { font-size: 12px; color: var(--muted-2); }
-        .snippet-card { border: 1px solid var(--border); border-radius: 14px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.07); background: #0f172a; }
-        .snippet-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .snippet-title { color: #94a3b8; font-size: 12px; font-family: ui-monospace, Menlo, Consolas, monospace; }
-        .copy-btn { height: 28px; padding: 0 10px; font-size: 12px; border-radius: 7px; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #e2e8f0; cursor: pointer; font-family: inherit; }
-        .copy-btn:hover { background: rgba(255,255,255,0.12); }
-        .snippet-body { padding: 16px; color: #e2e8f0; font-size: 13px; line-height: 1.7; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; white-space: pre; }
-        .snippet-body .a { color: #7dd3fc; }
-        .snippet-body .v { color: #a5b4fc; }
-        .snippet-body .c { color: #64748b; }
-        .tags { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 8px; }
-        .tag { display: inline-flex; align-items: center; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); padding: 6px 10px; font-size: 12px; color: var(--muted); }
-        .section { padding: 56px 0 64px; }
-        .section + .section { border-top: 1px solid var(--border); }
-        .section-head { margin-bottom: 24px; }
-        h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
-        @media (min-width: 640px) { h2 { font-size: 24px; } }
-        .sub { margin-top: 8px; font-size: 14px; color: var(--muted); max-width: 640px; }
-        @media (min-width: 640px) { .sub { font-size: 16px; } }
-        .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-        @media (min-width: 640px) { .grid-2 { grid-template-columns: 1fr 1fr; } .grid-3-sm { grid-template-columns: 1fr 1fr; } }
+        nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; font-size: 14px; }
+        .nav-link { display: inline-flex; height: 36px; align-items: center; padding: 0 10px; color: var(--muted); transition: background-color 120ms ease, color 120ms ease; }
+        .nav-link:hover { background: var(--bg-alt); color: var(--fg); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 18px; border: 1px solid var(--fg); background: transparent; color: var(--fg); font-size: 14px; font-weight: 550; cursor: pointer; font-family: var(--f-sans); transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease; }
+        .btn:hover { background: var(--fg); color: var(--bg); }
+        .btn-primary { background: var(--fg); color: var(--bg); }
+        .btn-primary:hover { background: var(--acc); border-color: var(--acc); color: #fff; }
+        .btn-acc { background: var(--acc); border-color: var(--acc); color: #fff; }
+        .btn-acc:hover { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+
+        /* hero */
+        .hero { border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
+        .hero-inner { padding: 84px 0 72px; position: relative; }
+        .hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+        @media (min-width: 980px) { .hero-grid { grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); } }
+        h1 { margin: 22px 0 0; font-size: 44px; font-weight: 650; letter-spacing: -0.035em; line-height: 1.02; text-wrap: balance; }
+        @media (min-width: 640px) { h1 { font-size: 60px; } }
+        .lead { margin-top: 20px; max-width: 540px; font-size: 16px; line-height: 1.7; color: var(--muted); text-wrap: pretty; }
+        @media (min-width: 640px) { .lead { font-size: 17px; } }
+        .cta-row { margin-top: 30px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        .stats { margin-top: 40px; display: grid; grid-template-columns: repeat(2, 1fr); border-top: 1px solid var(--border); }
+        @media (min-width: 640px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+        .stat { padding: 18px 20px 14px 20px; border-right: 1px solid var(--border-soft); }
+        .stat:first-child { padding-left: 0; }
+        .stat:last-child { border-right: none; }
+        .stat .num { font-size: 24px; font-weight: 650; letter-spacing: -0.03em; }
+        .stat .lbl { margin-top: 2px; font-size: 11px; font-family: var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); }
+
+        /* code snippet panel */
+        .snippet-card { border: 1px solid var(--fg); background: var(--dk-bg); }
+        .snippet-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--dk-rule); }
+        .snippet-title { color: var(--dk-mute); font-size: 11px; font-family: var(--f-mono); letter-spacing: 0.14em; text-transform: uppercase; }
+        .copy-btn { height: 28px; padding: 0 12px; font-size: 11px; font-family: var(--f-mono); letter-spacing: 0.08em; border: 1px solid var(--dk-rule); background: transparent; color: var(--dk-ink); cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease; }
+        .copy-btn:hover { border-color: var(--acc); background: var(--acc); }
+        .snippet-body { padding: 18px 16px; color: var(--dk-ink); font-size: 13px; line-height: 1.7; overflow-x: auto; font-family: var(--f-mono); white-space: pre; }
+        .snippet-body .a { color: #8fa3ff; }
+        .snippet-body .v { color: #c8d0ff; }
+        .snippet-body .c { color: #76776f; }
+
+        /* sections */
+        .section { padding: 72px 0; border-bottom: 1px solid var(--border); }
+        .section-head { margin-bottom: 32px; }
+        .section-head .idx { font-family: var(--f-mono); font-size: 12px; color: var(--faint); letter-spacing: 0.18em; }
+        h2 { margin: 10px 0 0; font-size: 26px; font-weight: 650; letter-spacing: -0.03em; line-height: 1.1; }
+        @media (min-width: 640px) { h2 { font-size: 32px; } }
+        .sub { margin-top: 10px; font-size: 15px; color: var(--muted); max-width: 620px; line-height: 1.65; }
+
+        .grid { display: grid; grid-template-columns: 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+        @media (min-width: 640px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
         @media (min-width: 1024px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } .grid-3 { grid-template-columns: repeat(3, 1fr); } }
-        .card { border-radius: 12px; border: 1px solid var(--border); background: var(--panel); padding: 16px; transition: border-color 120ms ease; }
-        .card:hover { border-color: #d4d4d8; }
-        h3 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
-        .card p { margin: 8px 0 0; font-size: 14px; line-height: 1.65; color: var(--muted); }
-        .card .k { display: inline-block; margin-top: 10px; font-size: 11.5px; color: var(--muted-2); font-family: ui-monospace, Menlo, Consolas, monospace; }
-        .card .link { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--fg); text-decoration: underline; text-underline-offset: 4px; }
-        .bmc-section { border-radius: 14px; border: 1px solid #fde68a; background: #fffbeb; padding: 28px; display: flex; flex-direction: column; gap: 16px; align-items: flex-start; }
-        @media (min-width: 768px) { .bmc-section { flex-direction: row; align-items: center; justify-content: space-between; } }
-        .bmc-section h2 { color: #78350f; }
-        .bmc-section p { margin: 8px 0 0; font-size: 14.5px; color: #92400e; max-width: 560px; }
-        .bmc-btn { display: inline-flex; align-items: center; gap: 10px; height: 48px; padding: 0 22px; border-radius: 12px; background: #f59e0b; color: #451a03; font-size: 15px; font-weight: 700; flex: none; transition: background-color 120ms ease; }
-        .bmc-btn:hover { background: #fbbf24; color: #451a03; }
-        footer { border-top: 1px solid var(--border); padding: 40px 0; }
-        .footer-inner { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; }
+        .cell { background: var(--panel); padding: 20px; transition: background-color 120ms ease; }
+        .cell:hover { background: var(--bg); }
+        h3 { margin: 0; font-size: 14.5px; font-weight: 650; letter-spacing: -0.01em; }
+        .cell p { margin: 8px 0 0; font-size: 13.5px; line-height: 1.6; color: var(--muted); }
+        .cell .k { display: inline-block; margin-top: 12px; font-size: 11px; color: var(--acc); font-family: var(--f-mono); letter-spacing: 0.04em; }
+        .cell .link { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--fg); border-bottom: 1px solid var(--acc); padding-bottom: 1px; }
+        .cell .link:hover { color: var(--acc); }
+
+        /* diagram */
+        .diagram-wrap { border: 1px solid var(--border); background: var(--panel); overflow-x: auto; }
+        .diagram-wrap svg { display: block; min-width: 860px; width: 100%; height: auto; }
+        .diagram-steps { display: grid; grid-template-columns: 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-top: none; }
+        @media (min-width: 640px) { .diagram-steps { grid-template-columns: repeat(4, 1fr); } }
+        .dstep { background: var(--panel); padding: 16px 20px; }
+        .dstep .n { font-family: var(--f-mono); font-size: 11px; color: var(--acc); letter-spacing: 0.18em; }
+        .dstep .t { margin-top: 6px; font-size: 14px; font-weight: 650; }
+        .dstep p { margin: 6px 0 0; font-size: 13px; color: var(--muted); line-height: 1.55; }
+
+        /* setup paths */
+        .paths { display: grid; grid-template-columns: 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+        @media (min-width: 1024px) { .paths { grid-template-columns: repeat(3, 1fr); } }
+        @supports (grid-template-rows: subgrid) {
+            @media (min-width: 1024px) {
+                .paths { grid-template-rows: repeat(5, auto); }
+                .path { display: grid; grid-template-rows: subgrid; grid-row: span 5; align-items: start; }
+                .path-tag { justify-self: start; }
+                .path > p { margin-bottom: 16px; }
+                .pre-block { align-self: stretch; }
+                .path-note { align-self: end; min-height: 0; }
+            }
+        }
+        .path { background: var(--panel); padding: 24px 22px; display: flex; flex-direction: column; }
+        .path-tag { align-self: flex-start; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; padding: 4px 8px; border: 1px solid var(--border); color: var(--muted-2); }
+        .path-tag.rec { background: var(--acc); border-color: var(--acc); color: #fff; }
+        .path h3 { margin-top: 14px; font-size: 16px; }
+        .path > p { margin: 8px 0 16px; font-size: 13.5px; color: var(--muted); line-height: 1.6; flex: none; }
+        .pre-block .c { color: #76776f; } .pre-block { position: relative; flex: 1 0 auto; background: var(--dk-bg); color: var(--dk-ink); font-family: var(--f-mono); font-size: 12px; line-height: 1.65; padding: 14px; padding-right: 58px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+        .pre-block.nowrap { white-space: pre; word-break: normal; }
+        .pre-copy { position: absolute; top: 8px; right: 8px; height: 26px; padding: 0 10px; font-size: 10.5px; font-family: var(--f-mono); letter-spacing: 0.06em; border: 1px solid var(--dk-rule); background: var(--dk-bg-2); color: var(--dk-ink); cursor: pointer; }
+        .pre-copy:hover { background: var(--acc); border-color: var(--acc); }
+        .path-note { margin-top: 12px; font-size: 12px; color: var(--muted-2); line-height: 1.55; min-height: 38px; flex: none; }
+        .path-note a { border-bottom: 1px solid var(--acc); color: var(--fg); }
+
+        /* dark support band */
+        .support { background: var(--dk-bg); color: var(--dk-ink); border-bottom: 1px solid var(--dk-rule); }
+        .support-inner { padding: 64px 0; display: flex; flex-direction: column; gap: 24px; align-items: flex-start; justify-content: space-between; }
+        @media (min-width: 800px) { .support-inner { flex-direction: row; align-items: center; } }
+        .support .eyebrow { color: var(--dk-mute); }
+        .support h2 { color: var(--dk-ink); }
+        .support p { margin: 12px 0 0; font-size: 15px; color: var(--dk-mute); max-width: 540px; line-height: 1.65; }
+        .bmc-btn { display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 26px; background: var(--acc); color: #fff; font-size: 14px; font-weight: 650; font-family: var(--f-mono); letter-spacing: 0.04em; flex: none; transition: background-color 120ms ease; }
+        .bmc-btn:hover { background: #1730cc; color: #fff; }
+
+        footer { padding: 40px 0 48px; }
+        .footer-inner { display: flex; flex-direction: column; gap: 14px; justify-content: space-between; }
         @media (min-width: 640px) { .footer-inner { flex-direction: row; align-items: center; } }
         .footer-note { font-size: 12px; color: var(--muted-2); }
-        .footer-links { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; }
-        .footer-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 4px; }
+        .footer-note a { border-bottom: 1px solid var(--acc); color: var(--fg); }
+        .footer-links { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; font-family: var(--f-mono); }
+        .footer-links a { color: var(--muted); }
+        .footer-links a:hover { color: var(--acc); }
     </style>
 </head>
 <body>
@@ -123,10 +193,11 @@
             </div>
             <nav>
                 <a class="nav-link" href="#features">Features</a>
+                <a class="nav-link" href="#setup">Setup</a>
                 <a class="nav-link" href="./docs.html">Docs</a>
                 <a class="nav-link" href="./compare.html">Compare</a>
                 <a class="nav-link" href="./demo/exam.html">Demo</a>
-                <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+                <a class="btn btn-primary" style="height:40px;" href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
             </nav>
         </div>
     </header>
@@ -135,10 +206,7 @@
             <div class="container hero-inner">
                 <div class="hero-grid">
                     <div>
-                        <p class="pill">
-                            <span class="mono">v1.0</span>
-                            <span>free • open source • self-hosted • no webcam</span>
-                        </p>
+                        <span class="eyebrow">v1.0 · free · open source · no webcam</span>
                         <h1>Exam integrity monitoring in one script tag.</h1>
                         <p class="lead">
                             Detect tab switching, focus loss, copy/paste, fullscreen exits, print attempts,
@@ -147,20 +215,20 @@
                         </p>
                         <div class="cta-row">
                             <a class="btn btn-primary" href="./demo/exam.html">Try the live demo</a>
-                            <a class="btn" href="./docs.html">Implementation docs</a>
+                            <a class="btn" href="#setup">Set it up</a>
                         </div>
                         <div class="stats">
-                            <div class="stat"><div class="num">~6 KB</div><div class="lbl">gzipped, zero dependencies</div></div>
+                            <div class="stat"><div class="num">~6 KB</div><div class="lbl">gzipped · 0 deps</div></div>
                             <div class="stat"><div class="num">11</div><div class="lbl">integrity signals</div></div>
-                            <div class="stat"><div class="num">$0</div><div class="lbl">MIT license, commercial OK</div></div>
-                            <div class="stat"><div class="num">0</div><div class="lbl">student installs needed</div></div>
+                            <div class="stat"><div class="num">$0</div><div class="lbl">MIT · commercial ok</div></div>
+                            <div class="stat"><div class="num">0</div><div class="lbl">student installs</div></div>
                         </div>
                     </div>
                     <div>
                         <div class="snippet-card">
                             <div class="snippet-head">
                                 <span class="snippet-title">exam-page.html</span>
-                                <button class="copy-btn" id="copySnippet" type="button">Copy</button>
+                                <button class="copy-btn" data-copy-target="snippet" type="button">COPY</button>
                             </div>
                             <div class="snippet-body" id="snippet">&lt;script src="/js/tinyproctor.min.js" data-tinyproctor
   <span class="a">data-endpoint</span>=<span class="v">"https://your-site.com/collect.php"</span>
@@ -177,49 +245,223 @@
             </div>
         </section>
 
+        <section id="system" class="section">
+            <div class="container">
+                <div class="section-head">
+                    <span class="idx">SYS · 01</span>
+                    <h2>The whole system, on one sheet</h2>
+                    <p class="sub">No vendor cloud in the loop. The script watches the exam page, scores what it sees, and ships the evidence to an endpoint you own.</p>
+                </div>
+                <div class="diagram-wrap" role="img" aria-label="Isometric system diagram: the exam page emits signals, signals are weighted into an integrity score, score and events are batched to your server.">
+                    <svg viewBox="0 0 1200 440" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, SF Mono, ui-monospace, Menlo, Consolas, monospace">
+                        <!-- blueprint grid -->
+                        <defs>
+                            <pattern id="bpgrid" width="40" height="40" patternUnits="userSpaceOnUse">
+                                <path d="M40 0H0V40" fill="none" stroke="#e4e6ea" stroke-width="1"/>
+                            </pattern>
+                            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                                <path d="M0 0 L10 5 L0 10 Z" fill="#0a0b0d"/>
+                            </marker>
+                        </defs>
+                        <rect width="1200" height="440" fill="#fbfaf6"/>
+                        <rect width="1200" height="440" fill="url(#bpgrid)"/>
+
+                        <!-- corner ticks + coords -->
+                        <g stroke="#9aa0ac" stroke-width="1.5">
+                            <path d="M24 16v16M16 24h16"/><path d="M1176 16v16M1168 24h16"/>
+                            <path d="M24 408v16M16 416h16"/><path d="M1176 408v16M1168 416h16"/>
+                        </g>
+                        <text x="46" y="28" font-size="10" letter-spacing="2" fill="#9aa0ac">TP/SYS·01</text>
+                        <text x="1154" y="28" font-size="10" letter-spacing="2" fill="#9aa0ac" text-anchor="end">1200×440</text>
+                        <text x="46" y="421" font-size="10" letter-spacing="2" fill="#9aa0ac">ISO 30°</text>
+                        <text x="1154" y="421" font-size="10" letter-spacing="2" fill="#9aa0ac" text-anchor="end">NO CLOUD IN LOOP</text>
+
+                        <!-- ── station 1 · exam page (iso slab with screen) ── -->
+                        <g transform="translate(175,170)">
+                            <!-- slab: a=170 b=110 c=14 -->
+                            <path d="M0 0 L147 85 L52 140 L-95 55 Z" fill="#f4f5f7" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M147 85 L147 99 L52 154 L52 140 Z" fill="#dfe2e8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M-95 55 L-95 69 L52 154 L52 140 Z" fill="#c8ccd4" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <!-- screen inset on top face -->
+                            <path d="M9 13 L130 83 L48 130 L-72 60 Z" fill="#0b25a8" stroke="#0a0b0d" stroke-width="1.5" stroke-linejoin="round"/>
+                            <path d="M22 24 L62 47 L40 60 L0 37 Z" fill="#1742ff"/>
+                            <path d="M70 52 L118 80 L96 92 L48 65 Z" fill="#1742ff" opacity="0.55"/>
+                            <!-- rising signal dots -->
+                            <g stroke="#1742ff" stroke-width="1.5" stroke-dasharray="3 5">
+                                <path d="M30 8 V-52"/><path d="M76 34 V-30"/><path d="M118 58 V-6"/>
+                            </g>
+                            <circle cx="30" cy="-60" r="6" fill="#1742ff"/>
+                            <circle cx="76" cy="-38" r="6" fill="#1742ff"/>
+                            <circle cx="118" cy="-14" r="6" fill="#1742ff"/>
+                            <text x="26" y="190" font-size="12" letter-spacing="2.5" fill="#0a0b0d" text-anchor="middle" font-weight="600">EXAM PAGE</text>
+                            <text x="26" y="208" font-size="10" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">ANY BROWSER · ZERO INSTALL</text>
+                        </g>
+
+                        <!-- connector 1→2 -->
+                        <path d="M352 268 H424" fill="none" stroke="#0a0b0d" stroke-width="2" marker-end="url(#arr)"/>
+                        <text x="388" y="256" font-size="9.5" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">LISTEN</text>
+
+                        <!-- ── station 2 · signals (3 small cubes) ── -->
+                        <g transform="translate(508,118)">
+                            <!-- cube s=36: top M0,0 L31,18 L0,36 L-31,18 Z right M31,18 v36 L0,72 v-36 left M-31,18 v36 L0,72 -->
+                            <g>
+                                <path d="M0 0 L31 18 L0 36 L-31 18 Z" fill="#1742ff" stroke="#0a0b0d" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M31 18 L31 54 L0 72 L0 36 Z" fill="#1330d0" stroke="#0a0b0d" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M-31 18 L-31 54 L0 72 L0 36 Z" fill="#0b25a8" stroke="#0a0b0d" stroke-width="2" stroke-linejoin="round"/>
+                                <text x="48" y="42" font-size="10" letter-spacing="1.5" fill="#5e6470">TAB_HIDDEN</text>
+                            </g>
+                            <g transform="translate(14,88)">
+                                <path d="M0 0 L31 18 L0 36 L-31 18 Z" fill="#1742ff" stroke="#0a0b0d" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M31 18 L31 54 L0 72 L0 36 Z" fill="#1330d0" stroke="#0a0b0d" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M-31 18 L-31 54 L0 72 L0 36 Z" fill="#0b25a8" stroke="#0a0b0d" stroke-width="2" stroke-linejoin="round"/>
+                                <text x="48" y="42" font-size="10" letter-spacing="1.5" fill="#5e6470">PASTE_ATTEMPT</text>
+                            </g>
+                            <g transform="translate(28,176)">
+                                <path d="M0 0 L31 18 L0 36 L-31 18 Z" fill="#1742ff" stroke="#0a0b0d" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M31 18 L31 54 L0 72 L0 36 Z" fill="#1330d0" stroke="#0a0b0d" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M-31 18 L-31 54 L0 72 L0 36 Z" fill="#0b25a8" stroke="#0a0b0d" stroke-width="2" stroke-linejoin="round"/>
+                                <text x="48" y="42" font-size="10" letter-spacing="1.5" fill="#5e6470">DEVTOOLS_KEY</text>
+                            </g>
+                            <text x="14" y="290" font-size="12" letter-spacing="2.5" fill="#0a0b0d" text-anchor="middle" font-weight="600">11 SIGNALS</text>
+                            <text x="14" y="308" font-size="10" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">+8 MORE · ALL CONFIGURABLE</text>
+                        </g>
+
+                        <!-- connector 2→3 -->
+                        <path d="M662 268 H730" fill="none" stroke="#0a0b0d" stroke-width="2" marker-end="url(#arr)"/>
+                        <text x="696" y="256" font-size="9.5" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">WEIGH</text>
+
+                        <!-- ── station 3 · score cube with dashed hex guide ── -->
+                        <g transform="translate(830,225)">
+                            <path d="M0 -118 L102 -59 L102 59 L0 118 L-102 59 L-102 -59 Z" fill="none" stroke="#c8ccd4" stroke-width="2" stroke-dasharray="10 12" stroke-linejoin="round"/>
+                            <!-- cube s=68 -->
+                            <path d="M0 -68 L59 -34 L0 0 L-59 -34 Z" fill="#1742ff" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M59 -34 L59 34 L0 68 L0 0 Z" fill="#1330d0" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M-59 -34 L-59 34 L0 68 L0 0 Z" fill="#0b25a8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <text x="0" y="-86" font-size="13" letter-spacing="2" fill="#1742ff" text-anchor="middle" font-weight="600">100 → 0</text>
+                            <text x="0" y="150" font-size="12" letter-spacing="2.5" fill="#0a0b0d" text-anchor="middle" font-weight="600">INTEGRITY SCORE</text>
+                            <text x="0" y="168" font-size="10" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">100 − Σ(WEIGHT × COUNT)</text>
+                        </g>
+
+                        <!-- connector 3→4 -->
+                        <path d="M938 268 H1002" fill="none" stroke="#0a0b0d" stroke-width="2" marker-end="url(#arr)"/>
+                        <text x="970" y="256" font-size="9.5" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">BEACON</text>
+
+                        <!-- ── station 4 · your server (stacked slabs) ── -->
+                        <g transform="translate(1085,176)">
+                            <!-- slab a=120 b=86 c=20 : top M0,0 L104,60 L29,103 L-74,43 Z -->
+                            <g transform="translate(0,56)">
+                                <path d="M0 0 L104 60 L29 103 L-74 43 Z" fill="#dfe2e8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                                <path d="M104 60 L104 80 L29 123 L29 103 Z" fill="#c8ccd4" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                                <path d="M-74 43 L-74 63 L29 123 L29 103 Z" fill="#9aa0ac" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            </g>
+                            <g>
+                                <path d="M0 0 L104 60 L29 103 L-74 43 Z" fill="#f4f5f7" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                                <path d="M104 60 L104 80 L29 123 L29 103 Z" fill="#dfe2e8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                                <path d="M-74 43 L-74 63 L29 123 L29 103 Z" fill="#c8ccd4" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                                <circle cx="-44" cy="48" r="5" fill="#2bd4a4" stroke="#0a0b0d" stroke-width="1.5"/>
+                            </g>
+                            <text x="15" y="216" font-size="12" letter-spacing="2.5" fill="#0a0b0d" text-anchor="middle" font-weight="600">YOUR SERVER</text>
+                            <text x="15" y="234" font-size="10" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">PHP · NODE · ANYTHING</text>
+                        </g>
+                    </svg>
+                </div>
+                <div class="diagram-steps">
+                    <div class="dstep"><div class="n">01 / EMBED</div><div class="t">One script tag</div><p>Auto-initializes from data-attributes. No build step, no framework, no install.</p></div>
+                    <div class="dstep"><div class="n">02 / MONITOR</div><div class="t">Passive listeners</div><p>Visibility, focus, fullscreen, clipboard, keys, activity. Never camera, mic, or contents.</p></div>
+                    <div class="dstep"><div class="n">03 / SCORE</div><div class="t">Weighted locally</div><p>Configurable weights produce a live 0–100 score for instant triage.</p></div>
+                    <div class="dstep"><div class="n">04 / REPORT</div><div class="t">Batched to you</div><p>sendBeacon / keepalive fetch with retry + backoff. Survives page close. Offline-tolerant.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="setup" class="section">
+            <div class="container">
+                <div class="section-head">
+                    <span class="idx">SYS · 02</span>
+                    <h2>Set up in the next five minutes</h2>
+                    <p class="sub">Two steps however you work: get the file, add the tag. Most people just hand step one and two to their AI agent.</p>
+                </div>
+                <div class="paths">
+                    <div class="path">
+                        <span class="path-tag rec">Recommended</span>
+                        <h3>Ask your AI agent</h3>
+                        <p>Using Claude, Copilot, Cursor or any coding agent? Paste this prompt — it handles the file, the tag, and the collector endpoint for your stack.</p>
+                        <div class="pre-block" id="prompt-agent">Add tinyproctor.js exam monitoring to my project:
+1. Fetch https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js into my static assets.
+2. Add its script tag to my exam page, data-endpoint pointing at a new /collect route.
+3. Build /collect per https://tanzir71.github.io/tinyproctorjs/llms.txt and store the events.<button class="pre-copy" data-copy-target="prompt-agent" type="button">COPY</button></div>
+                        <p class="path-note">Works with any agent that can read URLs — the docs are agent-readable at <a href="./llms.txt">/llms.txt</a>.</p>
+                    </div>
+                    <div class="path">
+                        <span class="path-tag">One command</span>
+                        <h3>Grab the file</h3>
+                        <p>The library is a single static file — download it straight into your project, then add the script tag from the hero above.</p>
+                        <div class="pre-block nowrap" id="prompt-curl"><span class="c"># download the library into your assets</span>
+curl -LO https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js
+
+<span class="c"># optional: full repo with demo server + tests</span>
+git clone https://github.com/tanzir71/tinyproctorjs<button class="pre-copy" data-copy-target="prompt-curl" type="button">COPY</button></div>
+                        <p class="path-note">Then add the script tag from the manual path — that's the whole client-side integration.</p>
+                    </div>
+                    <div class="path">
+                        <span class="path-tag">Manual</span>
+                        <h3>Copy the tag</h3>
+                        <p>Already have the file hosted? Drop the tag on the exam page and point it at your collector. That's the full client-side integration.</p>
+                        <div class="pre-block" id="prompt-manual">&lt;script src="/js/tinyproctor.min.js" data-tinyproctor
+  data-endpoint="https://your-site.com/collect.php"
+  data-exam-id="FINAL_2026"
+  data-attempt-id="ATTEMPT_1001"&gt;
+&lt;/script&gt;<button class="pre-copy" data-copy-target="prompt-manual" type="button">COPY</button></div>
+                        <p class="path-note">Collector in 30 lines: copy-paste <a href="./docs.html#collector">PHP or Node examples</a> from the docs.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <section id="features" class="section">
             <div class="container">
                 <div class="section-head">
+                    <span class="idx">SYS · 03</span>
                     <h2>Eleven signals, one integrity score</h2>
-                    <p class="sub">Every signal is individually configurable and weighted. The score (100 → 0) gives reviewers instant triage; the event timeline gives them evidence.</p>
+                    <p class="sub">Every signal is individually configurable and weighted. The score gives reviewers instant triage; the event timeline gives them evidence.</p>
                 </div>
                 <div class="grid grid-2 grid-4">
-                    <div class="card">
+                    <div class="cell">
                         <h3>Tab switching</h3>
                         <p>Detects when the exam tab is hidden or the browser is minimized.</p>
                         <span class="k">tab_hidden</span>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>Focus loss</h3>
                         <p>Flags clicks into other apps and windows — the classic second-screen tell.</p>
                         <span class="k">window_blur</span>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>Fullscreen exits</h3>
                         <p>Enforce fullscreen at start, get an event the moment a candidate leaves it.</p>
                         <span class="k">fullscreen_exit</span>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>Copy / cut / paste</h3>
                         <p>Detects clipboard use anywhere on the page — and can block it outright.</p>
                         <span class="k">copy_attempt · paste_attempt</span>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>Right-click</h3>
                         <p>Context-menu detection with an optional hard block.</p>
                         <span class="k">context_menu</span>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>Print attempts</h3>
                         <p>Catches Ctrl/Cmd+P and the browser's print dialog.</p>
                         <span class="k">print_attempt</span>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>DevTools heuristics</h3>
                         <p>Key-combo and window-resize heuristics flag console snooping. Best-effort by design.</p>
                         <span class="k">devtools_key · devtools_resize</span>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>Idle + heartbeat</h3>
                         <p>Inactivity detection plus a 30s heartbeat so dropped sessions stand out server-side.</p>
                         <span class="k">page_idle · heartbeat</span>
@@ -228,70 +470,44 @@
             </div>
         </section>
 
-        <section id="how" class="section">
-            <div class="container">
-                <div class="section-head">
-                    <h2>How it works</h2>
-                    <p class="sub">Local state is scored client-side; your backend stores the event stream for review. Delivery survives page close via the Beacon API.</p>
-                </div>
-                <div class="grid grid-2 grid-4">
-                    <div class="card">
-                        <h3>1 · Embed</h3>
-                        <p>Drop the script tag on the exam page with your endpoint and attempt ID. Auto-initializes — no build step, no framework.</p>
-                    </div>
-                    <div class="card">
-                        <h3>2 · Monitor</h3>
-                        <p>Passive listeners track visibility, focus, fullscreen, clipboard, keys and activity. No camera, mic, or keystroke contents — ever.</p>
-                    </div>
-                    <div class="card">
-                        <h3>3 · Score</h3>
-                        <p>Configurable weights produce a live 0–100 integrity score: <span class="mono" style="font-size:12px">100 − Σ(weight × count)</span>.</p>
-                    </div>
-                    <div class="card">
-                        <h3>4 · Report</h3>
-                        <p>Events batch to your collector via <span class="mono" style="font-size:12px">sendBeacon</span> / keepalive fetch with retry and backoff. Offline-tolerant.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <section id="why" class="section">
             <div class="container">
                 <div class="section-head">
+                    <span class="idx">SYS · 04</span>
                     <h2>Why teams pick it over proctoring vendors</h2>
                     <p class="sub">For low/medium-stakes assessments, webcam proctoring is often disproportionate — and per-student pricing punishes scale.</p>
                 </div>
-                <div class="grid grid-3 grid-3-sm">
-                    <div class="card">
+                <div class="grid grid-3">
+                    <div class="cell">
                         <h3>Private by architecture</h3>
                         <p>No recordings, no vendor cloud, no third-party processors. The script and the data live on your infrastructure — which makes GDPR and FERPA conversations dramatically simpler.</p>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>Zero exam-day friction</h3>
                         <p>Students need a normal browser and nothing else. No extension installs, no lockdown-browser support tickets, works on Chromebooks, tablets and phones.</p>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>Free at any scale</h3>
                         <p>MIT-licensed and free for commercial use. 50 students or 50,000 — the price is the same: zero.</p>
                     </div>
                 </div>
-                <div class="grid grid-2 grid-4" style="margin-top:16px;">
-                    <div class="card">
+                <div class="grid grid-2 grid-4" style="margin-top:24px;">
+                    <div class="cell">
                         <h3>vs Proctorio</h3>
                         <p>No webcam, no extension, no AI review queue.</p>
                         <a class="link" href="./proctorio-alternative.html">Compare →</a>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>vs Honorlock</h3>
                         <p>No per-student or per-session pricing.</p>
                         <a class="link" href="./honorlock-alternative.html">Compare →</a>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>vs Respondus</h3>
                         <p>Detection without installing a lockdown browser.</p>
                         <a class="link" href="./respondus-lockdown-browser-alternative.html">Compare →</a>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>vs Safe Exam Browser</h3>
                         <p>Two free tools, opposite halves of the problem.</p>
                         <a class="link" href="./safe-exam-browser-alternative.html">Compare →</a>
@@ -303,15 +519,16 @@
         <section id="honesty" class="section">
             <div class="container">
                 <div class="section-head">
+                    <span class="idx">SYS · 05</span>
                     <h2>What it deliberately doesn't do</h2>
                     <p class="sub">Honest scope beats inflated promises. Client-side signals are indicators for human review — not proof, and not prevention.</p>
                 </div>
                 <div class="grid grid-2">
-                    <div class="card">
+                    <div class="cell">
                         <h3>No surveillance</h3>
                         <p>No camera, no microphone, no screen recording, no keystroke logging, no clipboard contents. Events describe <em>that</em> something happened, never <em>what</em> was typed or copied.</p>
                     </div>
-                    <div class="card">
+                    <div class="cell">
                         <h3>No false security</h3>
                         <p>A technically skilled candidate can disable any in-page script. tinyproctor.js deters casual misuse and produces an audit trail — for high-stakes certification, layer it with stronger controls.</p>
                     </div>
@@ -319,40 +536,41 @@
             </div>
         </section>
 
-        <section class="section">
-            <div class="container">
-                <div class="bmc-section">
-                    <div>
-                        <h2>Free forever. Fueled by coffee.</h2>
-                        <p>tinyproctor.js is MIT-licensed and saves teams real vendor budget. If it saved yours, a coffee keeps maintenance, docs, and new signals coming.</p>
-                    </div>
-                    <a class="bmc-btn" href="https://buymeacoffee.com/tanzir" rel="noopener">☕ Buy me a coffee</a>
+        <section class="support">
+            <div class="container support-inner">
+                <div>
+                    <span class="eyebrow">support · open source</span>
+                    <h2>Free forever. Fueled by coffee.</h2>
+                    <p>tinyproctor.js is MIT-licensed and saves teams real vendor budget. If it saved yours, a coffee keeps maintenance, docs, and new signals coming.</p>
                 </div>
+                <a class="bmc-btn" href="https://buymeacoffee.com/tanzir" target="_blank" rel="noopener">[ ☕ buy me a coffee ]</a>
             </div>
         </section>
     </main>
     <footer>
         <div class="container footer-inner">
-            <div class="footer-note">tinyproctor.js — built with ♥ by <a href="https://tanziro.com" style="text-decoration:underline;">tanziro.com</a> · <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;">Buy me a coffee</a></div>
+            <div class="footer-note">tinyproctor.js — built by <a href="https://tanziro.com" target="_blank" rel="noopener">tanziro.com</a> · <a href="https://buymeacoffee.com/tanzir" target="_blank" rel="noopener">buy me a coffee</a></div>
             <div class="footer-links">
-                <a href="./docs.html">Docs</a>
-                <a href="./compare.html">Compare</a>
-                <a href="./demo/exam.html">Demo</a>
-                <a href="./proctorio-alternative.html">Proctorio alternative</a>
-                <a href="./honorlock-alternative.html">Honorlock alternative</a>
-                <a href="./respondus-lockdown-browser-alternative.html">Respondus alternative</a>
-                <a href="./safe-exam-browser-alternative.html">SEB alternative</a>
-                <a href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+                <a href="./docs.html">docs</a>
+                <a href="./compare.html">compare</a>
+                <a href="./demo/exam.html">demo</a>
+                <a href="./proctorio-alternative.html">vs proctorio</a>
+                <a href="./honorlock-alternative.html">vs honorlock</a>
+                <a href="./respondus-lockdown-browser-alternative.html">vs respondus</a>
+                <a href="./safe-exam-browser-alternative.html">vs seb</a>
+                <a href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">github</a>
             </div>
         </div>
     </footer>
     <script>
     (function () {
-        var btn = document.getElementById('copySnippet')
-        if (!btn) return
-        btn.addEventListener('click', function () {
-            var text = document.getElementById('snippet').textContent
-            function done() { btn.textContent = 'Copied!'; setTimeout(function () { btn.textContent = 'Copy' }, 1200) }
+        'use strict'
+        function copyText(text, btn) {
+            function done() {
+                var prev = btn.textContent
+                btn.textContent = 'COPIED'
+                setTimeout(function () { btn.textContent = prev }, 1200)
+            }
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(done)
             } else {
@@ -361,6 +579,16 @@
                 try { document.execCommand('copy') } catch (e) {}
                 document.body.removeChild(ta); done()
             }
+        }
+        Array.prototype.slice.call(document.querySelectorAll('[data-copy-target]')).forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var el = document.getElementById(btn.getAttribute('data-copy-target'))
+                if (!el) return
+                var clone = el.cloneNode(true)
+                var b = clone.querySelector('.pre-copy')
+                if (b) b.remove()
+                copyText(clone.textContent.trim(), btn)
+            })
         })
     })()
     </script>
