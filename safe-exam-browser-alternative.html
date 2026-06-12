@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Safe Exam Browser Alternative Without Installs — tinyproctor.js</title>
+    <meta name="description" content="Safe Exam Browser is a free kiosk lockdown app that students must install and configure. tinyproctor.js is the zero-install counterpart: free, open-source browser integrity monitoring from a single script tag.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://tanzir71.github.io/tinyproctorjs/safe-exam-browser-alternative.html">
+    <meta property="og:title" content="Safe Exam Browser Alternative Without Installs — tinyproctor.js">
+    <meta property="og:description" content="Safe Exam Browser is a free kiosk lockdown app that students must install and configure. tinyproctor.js is the zero-install counterpart: free, open-source browser integrity monitoring from a single script tag.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://tanzir71.github.io/tinyproctorjs/safe-exam-browser-alternative.html">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%91%81%EF%B8%8F%3C%2Ftext%3E%3C%2Fsvg%3E">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Are both tools really free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Safe Exam Browser is open source under MPL; tinyproctor.js is open source under MIT. Neither charges per student or per exam."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use tinyproctor.js inside Safe Exam Browser?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. SEB renders normal web pages, so the script runs fine inside it \u2014 giving you SEB's prevention plus tinyproctor's event timeline in one setup."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which is more secure?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "SEB. Kiosk-mode lockdown is categorically stronger than in-page JavaScript. tinyproctor.js trades some enforcement strength for zero-install deployment and server-side telemetry."
+      }
+    }
+  ]
+}
+    </script>
+    <style>
+        :root {
+            --bg: #ffffff; --fg: #09090b; --muted: #52525b; --muted-2: #71717a;
+            --border: #e4e4e7; --panel: #ffffff; --hover: #fafafa;
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; line-height: 1.6; }
+        a { color: inherit; text-decoration: none; }
+        .container { margin: 0 auto; max-width: 1152px; padding: 0 16px; }
+        header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); }
+        .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; }
+        .brand { display: inline-flex; align-items: center; gap: 12px; }
+        .logo { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); }
+        .logo span { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+        .brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+        nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+        .nav-link { display: inline-flex; height: 36px; align-items: center; border-radius: 8px; padding: 0 8px; color: var(--muted); }
+        .nav-link:hover { background: var(--hover); color: var(--fg); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--fg); font-size: 14px; font-weight: 500; }
+        .btn:hover { background: var(--hover); }
+        .btn-primary { background: var(--fg); border-color: var(--fg); color: #fff; }
+        .btn-primary:hover { background: #18181b; }
+        .mono, code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        code { font-size: 0.9em; background: var(--hover); border: 1px solid var(--border); border-radius: 6px; padding: 1px 5px; }
+        .hero { padding: 56px 0 8px; }
+        .pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; border: 1px solid var(--border); padding: 6px 12px; font-size: 12px; color: var(--muted); }
+        h1 { margin: 10px 0 0; font-size: 34px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; max-width: 760px; }
+        @media (min-width: 640px) { h1 { font-size: 44px; } }
+        .lead { margin-top: 14px; max-width: 700px; font-size: 16px; line-height: 1.75; color: var(--muted); }
+        .section { padding: 36px 0 0; }
+        .section:last-of-type { padding-bottom: 72px; }
+        h2 { margin: 0 0 8px; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
+        h3 { margin: 20px 0 0; font-size: 15px; font-weight: 600; }
+        p { margin: 8px 0 0; font-size: 14.5px; color: var(--muted); max-width: 760px; }
+        p strong { color: var(--fg); }
+        .table-wrap { overflow-x: auto; margin-top: 16px; border: 1px solid var(--border); border-radius: 12px; }
+        table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 13.5px; }
+        thead th { text-align: left; font-size: 11.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted-2); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--hover); }
+        tbody td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+        tbody tr:first-child td { border-top: none; }
+        tbody td:first-child { color: var(--fg); font-weight: 600; white-space: nowrap; }
+        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+        @media (min-width: 640px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+        .card { border-radius: 12px; border: 1px solid var(--border); padding: 18px; }
+        .card h3 { margin: 0; }
+        .card p { font-size: 14px; }
+        .cta-row { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        .bmc { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #fde68a; background: #fffbeb; color: #92400e; font-size: 14px; font-weight: 600; }
+        .bmc:hover { background: #fef3c7; }
+        .note { margin-top: 20px; font-size: 13px; color: var(--muted-2); max-width: 760px; }
+        footer { border-top: 1px solid var(--border); padding: 40px 0; margin-top: 56px; }
+        .footer-inner { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; }
+        @media (min-width: 640px) { .footer-inner { flex-direction: row; align-items: center; } }
+        .footer-note { font-size: 12px; color: var(--muted-2); }
+        .footer-links { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; }
+        .footer-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 4px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-inner">
+            <a class="brand" href="./index.html">
+                <div class="logo"><span>TP</span></div>
+                <span class="brand-name">tinyproctor.js</span>
+            </a>
+            <nav>
+                <a class="nav-link" href="./index.html#features">Features</a>
+                <a class="nav-link" href="./docs.html">Docs</a>
+                <a class="nav-link" href="./compare.html">Compare</a>
+                <a class="nav-link" href="./demo/exam.html">Demo</a>
+                <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="container hero">
+            <p class="pill"><span class="mono">comparison</span><span>tinyproctor.js vs Safe Exam Browser</span></p>
+            <h1>A zero-install Safe Exam Browser alternative</h1>
+            <p class="lead">Safe Exam Browser is a free kiosk lockdown app that students must install and configure. tinyproctor.js is the zero-install counterpart: free, open-source browser integrity monitoring from a single script tag.</p>
+            <div class="cta-row">
+                <a class="btn btn-primary" href="./demo/exam.html">Try the live demo</a>
+                <a class="btn" href="./docs.html">Read the docs</a>
+            </div>
+        </section>
+
+        <section class="container section">
+            <h2>What Safe Exam Browser does</h2>
+            <p>Safe Exam Browser (SEB) is a free, open-source lockdown application for Windows, macOS and iOS. It opens the exam in kiosk mode, blocks app switching and system shortcuts, and integrates with Moodle, ILIAS, OpenOLAT and several commercial exam systems. It's the strongest free prevention tool available.</p>
+            <h2 style="margin-top:28px;">How tinyproctor.js differs</h2>
+            <p>tinyproctor.js is also free and open source, but solves the opposite half of the problem: telemetry instead of lockdown, zero install instead of managed configuration. The two are complementary — SEB prevents what it can, tinyproctor.js records what happened. For cohorts where installing SEB is impractical (BYOD, remote, mobile), tinyproctor.js is the lighter-weight option.</p>
+        </section>
+
+        <section class="container section">
+            <h2>Side by side</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Dimension</th><th>tinyproctor.js</th><th>Safe Exam Browser</th></tr></thead>
+                    <tbody>
+                            <tr><td>Install & config</td><td>None — one script tag</td><td>App install + .seb config files</td></tr>
+                            <tr><td>Model</td><td>Detect, score & report</td><td>Kiosk-mode prevention</td></tr>
+                            <tr><td>Platforms</td><td>Any modern browser incl. mobile</td><td>Windows, macOS, iOS apps</td></tr>
+                            <tr><td>Integrity timeline / dashboard data</td><td>Yes — events POST to your server</td><td>No telemetry by itself</td></tr>
+                            <tr><td>Cost</td><td>Free, MIT license</td><td>Free, open source (MPL)</td></tr>
+                            <tr><td>Best at</td><td>Low-friction monitoring & evidence</td><td>Hard prevention on managed devices</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="note">Comparison reflects publicly documented behavior as of June 2026 and typical configurations; vendor capabilities and pricing change — verify details with the vendor before purchasing.</p>
+        </section>
+
+        <section class="container section">
+            <h2>Which should you choose?</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Choose Safe Exam Browser if…</h3>
+                    <p>you control the devices (computer labs, managed laptops) or your students can reliably install software, and prevention matters more than telemetry.</p>
+                </div>
+                <div class="card">
+                    <h3>Choose tinyproctor.js if…</h3>
+                    <p>installs are impossible or risky for your cohort, you need an audit trail of what happened during attempts, or you want monitoring on mobile devices. Many teams run both: SEB where they can, tinyproctor.js everywhere else.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="container section">
+            <h2>Frequently asked questions</h2>
+                <h3>Are both tools really free?</h3>
+                <p>Yes. Safe Exam Browser is open source under MPL; tinyproctor.js is open source under MIT. Neither charges per student or per exam.</p>
+                <h3>Can I use tinyproctor.js inside Safe Exam Browser?</h3>
+                <p>Yes. SEB renders normal web pages, so the script runs fine inside it — giving you SEB's prevention plus tinyproctor's event timeline in one setup.</p>
+                <h3>Which is more secure?</h3>
+                <p>SEB. Kiosk-mode lockdown is categorically stronger than in-page JavaScript. tinyproctor.js trades some enforcement strength for zero-install deployment and server-side telemetry.</p>
+            <div class="cta-row">
+                <a class="btn btn-primary" href="./demo/exam.html">See it work in 30 seconds</a>
+                <a class="bmc" href="https://buymeacoffee.com/tanzir" rel="noopener">☕ Support this project</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-inner">
+            <div class="footer-note">tinyproctor.js — free &amp; open source. Built by <a href="https://tanziro.com" style="text-decoration:underline;">tanziro.com</a> · <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;">Buy me a coffee</a></div>
+            <div class="footer-links">
+                <a href="./index.html">Home</a>
+                <a href="./docs.html">Docs</a>
+                <a href="./compare.html">Compare</a>
+                <a href="./demo/exam.html">Demo</a>
+                <a href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

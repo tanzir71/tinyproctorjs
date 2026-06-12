@@ -2,141 +2,112 @@
 
 Minimal, self-hosted, dependency-free browser integrity monitoring for online exams.
 
-It auto-initializes from `<script>` `data-*` attributes, maintains local violation state, calculates an integrity score, and reports events reliably via `navigator.sendBeacon()` or `fetch({ keepalive: true })`.
+One script tag detects tab switching, focus loss, fullscreen exits, copy/cut/paste, right-click, print attempts, DevTools heuristics, and inactivity — scores them into a live 0–100 integrity score, and reports event batches reliably to **your** server via `navigator.sendBeacon()` / `fetch(keepalive)`.
 
-- Landing page: `docs/index.html`
-- Compare page: `docs/compare.html`
+No webcam. No extensions. No vendor cloud. No per-student fees. MIT licensed.
 
-## Quick Start
+- **Website:** https://tanzir71.github.io/tinyproctorjs/
+- **Live demo:** https://tanzir71.github.io/tinyproctorjs/demo/exam.html
+- **Docs:** https://tanzir71.github.io/tinyproctorjs/docs.html
+- **Comparisons:** https://tanzir71.github.io/tinyproctorjs/compare.html
+- **Support the project:** https://buymeacoffee.com/tanzir ☕
 
-Host `tinyproctor.js` somewhere reachable by the exam page and embed it:
+## Quick start
+
+Host `tinyproctor.min.js` (~6 KB gzipped) on your own domain and embed it on the exam page:
 
 ```html
 <script
-  src="/path/to/tinyproctor.js"
+  src="/js/tinyproctor.min.js"
   data-tinyproctor
-  data-endpoint="https://your-domain.example/collect.php"
-  data-exam-id="EXAM_2026_05"
+  data-endpoint="https://your-domain.com/collect.php"
+  data-exam-id="FINAL_2026_06"
   data-attempt-id="ATTEMPT_12345"
   data-candidate-label="student_42"
-  data-silent="true"
-  data-heartbeat-ms="30000"
-  data-weights='{"tab_hidden":10,"window_blur":5,"fullscreen_exit":25,"devtools_key":20,"devtools_resize":15}'
 ></script>
 ```
 
-## What It Tracks
+Monitoring starts automatically. Events POST to `data-endpoint` as JSON batches.
 
-- Tab switching: `visibilitychange` (`hidden` increments `tab_hidden`)
-- Window focus: `blur` / `focus` (`blur` increments `window_blur`)
-- Fullscreen integrity: `fullscreenchange` (`exit` increments `fullscreen_exit`)
-- DevTools heuristics (best-effort)
-  - Key combos: `F12`, `Ctrl+Shift+I/J/C`, `Meta+Alt+I` (`devtools_key`)
-  - Resize heuristic: `outer/inner` dimension deltas (`devtools_resize`)
-- Integrity heartbeat every `data-heartbeat-ms` (default `30000`)
+## What it detects
 
-## Silent Mode
+| Violation key | Trigger | Default weight |
+| --- | --- | --- |
+| `tab_hidden` | Tab switched / browser minimized | 10 |
+| `window_blur` | Window lost focus | 5 |
+| `fullscreen_exit` | Left fullscreen | 25 |
+| `devtools_key` | F12, Ctrl/Cmd+Shift+I/J/C | 20 |
+| `devtools_resize` | Outer/inner window delta heuristic | 15 |
+| `copy_attempt` | Copy event | 10 |
+| `cut_attempt` | Cut event | 10 |
+| `paste_attempt` | Paste event | 15 |
+| `context_menu` | Right-click | 5 |
+| `print_attempt` | Ctrl/Cmd+P or `beforeprint` | 10 |
+| `page_idle` | No activity for `idleMs` (default 60s) | 5 |
 
-`data-silent="true"` reports only (no UI). If `data-silent="false"`, a small read-only badge is shown with integrity score and total violations.
+Every signal can be disabled individually; clipboard and context menu can also be **blocked** (`data-block-clipboard`, `data-block-contextmenu`). A heartbeat fires every 30s so dropped sessions stand out server-side.
 
-## Integrity Score
+**Integrity score:** `score = 100 − Σ(weight × count)`, clamped to `[0, 100]`. Weights are configurable via `data-weights='{"tab_hidden":20}'`.
 
-Calculated locally:
+## Configuration
 
-`score = 100 - Σ(weight[key] * count[key])`, clamped to `[0, 100]`.
+See the full reference in the [docs](https://tanzir71.github.io/tinyproctorjs/docs.html#configuration). Highlights:
 
-Default violation keys:
+| Attribute | Default | Notes |
+| --- | --- | --- |
+| `data-endpoint` | — | Collector URL (required for reporting) |
+| `data-attempt-id` | auto | Strongly recommended — your exam system's attempt ID |
+| `data-silent` | `true` | `false` shows a live score badge |
+| `data-idle-ms` | `60000` | Inactivity threshold |
+| `data-weights` | defaults | JSON object of violation weights |
+| `data-block-clipboard` | `false` | Prevent copy/cut/paste, not just detect |
+| `data-block-contextmenu` | `false` | Prevent right-click |
+| `data-format` | `json` | `form` for legacy PHP (`payload=<json>`) |
+| `data-autoinit` | `true` | `false` to call `TinyProctor.init()` yourself |
 
-- `tab_hidden`
-- `window_blur`
-- `fullscreen_exit`
-- `devtools_key`
-- `devtools_resize`
+## JavaScript API
 
-## Configuration (data-attributes)
+```js
+var proctor = TinyProctor.init({
+  endpoint: '/collect',
+  examId: 'FINAL_2026_06',
+  attemptId: attempt.id,
+  onViolation: function (key, data, state) {
+    if (state.integrityScore < 50) showWarningBanner()
+  }
+})
 
-Required:
-
-- `data-endpoint`: Collector URL (absolute or relative)
-
-Strongly recommended:
-
-- `data-attempt-id`: Per-attempt identifier from your quiz/exam system
-
-Optional:
-
-- `data-exam-id`
-- `data-candidate-label`
-- `data-silent`: `true`/`false` (default `true`)
-- `data-heartbeat-ms`: integer ms (default `30000`)
-- `data-flush-ms`: integer ms (default `900`)
-- `data-batch-max`: integer (default `20`)
-- `data-queue-max`: integer (default `250`)
-- `data-devtools`: `true`/`false` (default `true`)
-- `data-devtools-resize-threshold`: integer pixels (default `160`)
-- `data-devtools-resize-cooldown-ms`: integer ms (default `10000`)
-- `data-resize-throttle-ms`: integer ms (default `500`)
-- `data-credentials`: `omit` (default) | `same-origin` | `include`
-- `data-format`: `json` (default) | `form` (sends `payload=<urlencoded json>`)
-- `data-weights`: JSON object string
-- `data-autoinit`: `true`/`false` (default `true`)
-
-## JavaScript API (optional)
-
-The library exposes `window.TinyProctor`:
-
-- `TinyProctor.init(config)`
-- `TinyProctor.get()`
-
-Instance methods:
-
-- `instance.getState()`
-- `instance.flush()`
-- `instance.stop()`
-- `instance.requestFullscreen(el?)`
-- `instance.exitFullscreen()`
-- `instance.markViolation(key, data?)`
-
-## Backend Payload
-
-By default, events are sent in batches:
-
-```json
-{
-  "schemaVersion": 1,
-  "clientVersion": "0.1.0",
-  "kind": "batch",
-  "sessionId": "tp_...",
-  "examId": "...",
-  "attemptId": "...",
-  "candidateLabel": "...",
-  "sentAt": "2026-05-12T12:00:00.000Z",
-  "events": [
-    {
-      "clientTime": "...",
-      "eventType": "heartbeat|visibility|focus|fullscreen|devtools|custom",
-      "violationKey": "tab_hidden|window_blur|fullscreen_exit|devtools_key|devtools_resize|custom|...",
-      "eventData": {},
-      "pageUrl": "...",
-      "violationCount": 3,
-      "integrityScore": 65
-    }
-  ]
-}
+proctor.requestFullscreen()        // call from a user gesture
+proctor.getState()                 // score, counts, recent violations
+proctor.markViolation('custom')    // your own violation keys
+proctor.flush()                    // force-send queue
+TinyProctor.destroy()              // stop + allow re-init
 ```
 
-## CORS Notes
+## Backend payload
 
-If the exam page origin differs from your collector origin, the collector must respond with CORS headers (and handle `OPTIONS`). `sendBeacon()` requests do not include custom headers.
+Events arrive as JSON batches (`kind: "batch"`) with a session envelope (userAgent, language, screen size, timezone) and per-event records carrying `eventType`, `violationKey`, `integrityScore`, timestamps and page state. Full schema + copy-paste **PHP/SQLite** and **Node.js** collector examples: [docs → Building a collector](https://tanzir71.github.io/tinyproctorjs/docs.html#collector).
 
-## Local Demo
+Delivery is at-least-once with exponential-backoff retry; dedupe on `(sessionId, clientTime, eventType, violationKey)` if exact counts matter.
+
+## Honest limits
+
+Client-side signals are **deterrence and triage**, not proof and not prevention. A technically skilled candidate can disable any in-page script — use heartbeat gaps to detect that server-side, and pair flags with human review. For high-stakes certification, layer with stronger controls ([comparison](https://tanzir71.github.io/tinyproctorjs/compare.html)).
+
+**Privacy:** never accesses camera, microphone, screen contents, keystroke contents, or clipboard contents. Self-hosted by design — simplifies GDPR/FERPA.
+
+## Development
 
 ```bash
-node demo/server.mjs
+node demo/server.mjs        # local demo at http://localhost:8787/
+npm install jsdom           # once
+node test/run-tests.mjs     # run the 54-test suite
 ```
 
-- Landing: `http://localhost:8787/`
-- Compare: `http://localhost:8787/compare`
-- Exam demo: `http://localhost:8787/exam`
-- Collector: `http://localhost:8787/collect`
-- Received events: `http://localhost:8787/events`
+`docs/` is the GitHub Pages site; root files are the source of truth. After changing pages or the library, re-copy them into `docs/`.
+
+Minified build: `npx terser tinyproctor.js --compress --mangle --comments "/^!/" -o tinyproctor.min.js`
+
+## License
+
+MIT — free for commercial use. If it saves you a proctoring-vendor contract, consider [buying me a coffee](https://buymeacoffee.com/tanzir). ☕

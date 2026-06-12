@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Honorlock Alternative (No Per-Exam Fees) — tinyproctor.js</title>
+    <meta name="description" content="Honorlock charges per student or per session for AI + live proctoring. tinyproctor.js is a free, self-hosted alternative for low/medium-stakes exams: browser integrity signals, no webcam, no extension, no fees.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://tanzir71.github.io/tinyproctorjs/honorlock-alternative.html">
+    <meta property="og:title" content="Free Honorlock Alternative (No Per-Exam Fees) — tinyproctor.js">
+    <meta property="og:description" content="Honorlock charges per student or per session for AI + live proctoring. tinyproctor.js is a free, self-hosted alternative for low/medium-stakes exams: browser integrity signals, no webcam, no extension, no fees.">
+    <meta property="og:type" content="article">
+    <meta property="og:url" content="https://tanzir71.github.io/tinyproctorjs/honorlock-alternative.html">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%91%81%EF%B8%8F%3C%2Ftext%3E%3C%2Fsvg%3E">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "How much does tinyproctor.js cost compared to Honorlock?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "tinyproctor.js is free and MIT-licensed with no per-student or per-session fees. Honorlock is commercial and typically priced per student or per exam session; contact the vendor for a quote."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does tinyproctor.js have live proctors?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. It is a monitoring library, not a proctoring service. It produces a violation timeline and integrity score that your own instructors or admins review."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use tinyproctor.js with my LMS?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes \u2014 any platform where you can add a script tag to the exam page works, including Moodle, WordPress LMS plugins, and custom exam systems."
+      }
+    }
+  ]
+}
+    </script>
+    <style>
+        :root {
+            --bg: #ffffff; --fg: #09090b; --muted: #52525b; --muted-2: #71717a;
+            --border: #e4e4e7; --panel: #ffffff; --hover: #fafafa;
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; line-height: 1.6; }
+        a { color: inherit; text-decoration: none; }
+        .container { margin: 0 auto; max-width: 1152px; padding: 0 16px; }
+        header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); }
+        .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; }
+        .brand { display: inline-flex; align-items: center; gap: 12px; }
+        .logo { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); }
+        .logo span { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+        .brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+        nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+        .nav-link { display: inline-flex; height: 36px; align-items: center; border-radius: 8px; padding: 0 8px; color: var(--muted); }
+        .nav-link:hover { background: var(--hover); color: var(--fg); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--fg); font-size: 14px; font-weight: 500; }
+        .btn:hover { background: var(--hover); }
+        .btn-primary { background: var(--fg); border-color: var(--fg); color: #fff; }
+        .btn-primary:hover { background: #18181b; }
+        .mono, code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        code { font-size: 0.9em; background: var(--hover); border: 1px solid var(--border); border-radius: 6px; padding: 1px 5px; }
+        .hero { padding: 56px 0 8px; }
+        .pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; border: 1px solid var(--border); padding: 6px 12px; font-size: 12px; color: var(--muted); }
+        h1 { margin: 10px 0 0; font-size: 34px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; max-width: 760px; }
+        @media (min-width: 640px) { h1 { font-size: 44px; } }
+        .lead { margin-top: 14px; max-width: 700px; font-size: 16px; line-height: 1.75; color: var(--muted); }
+        .section { padding: 36px 0 0; }
+        .section:last-of-type { padding-bottom: 72px; }
+        h2 { margin: 0 0 8px; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
+        h3 { margin: 20px 0 0; font-size: 15px; font-weight: 600; }
+        p { margin: 8px 0 0; font-size: 14.5px; color: var(--muted); max-width: 760px; }
+        p strong { color: var(--fg); }
+        .table-wrap { overflow-x: auto; margin-top: 16px; border: 1px solid var(--border); border-radius: 12px; }
+        table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 13.5px; }
+        thead th { text-align: left; font-size: 11.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted-2); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--hover); }
+        tbody td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--muted); vertical-align: top; }
+        tbody tr:first-child td { border-top: none; }
+        tbody td:first-child { color: var(--fg); font-weight: 600; white-space: nowrap; }
+        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
+        @media (min-width: 640px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
+        .card { border-radius: 12px; border: 1px solid var(--border); padding: 18px; }
+        .card h3 { margin: 0; }
+        .card p { font-size: 14px; }
+        .cta-row { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+        .bmc { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #fde68a; background: #fffbeb; color: #92400e; font-size: 14px; font-weight: 600; }
+        .bmc:hover { background: #fef3c7; }
+        .note { margin-top: 20px; font-size: 13px; color: var(--muted-2); max-width: 760px; }
+        footer { border-top: 1px solid var(--border); padding: 40px 0; margin-top: 56px; }
+        .footer-inner { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; }
+        @media (min-width: 640px) { .footer-inner { flex-direction: row; align-items: center; } }
+        .footer-note { font-size: 12px; color: var(--muted-2); }
+        .footer-links { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; }
+        .footer-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 4px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-inner">
+            <a class="brand" href="./index.html">
+                <div class="logo"><span>TP</span></div>
+                <span class="brand-name">tinyproctor.js</span>
+            </a>
+            <nav>
+                <a class="nav-link" href="./index.html#features">Features</a>
+                <a class="nav-link" href="./docs.html">Docs</a>
+                <a class="nav-link" href="./compare.html">Compare</a>
+                <a class="nav-link" href="./demo/exam.html">Demo</a>
+                <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="container hero">
+            <p class="pill"><span class="mono">comparison</span><span>tinyproctor.js vs Honorlock</span></p>
+            <h1>A free, no-webcam Honorlock alternative</h1>
+            <p class="lead">Honorlock charges per student or per session for AI + live proctoring. tinyproctor.js is a free, self-hosted alternative for low/medium-stakes exams: browser integrity signals, no webcam, no extension, no fees.</p>
+            <div class="cta-row">
+                <a class="btn btn-primary" href="./demo/exam.html">Try the live demo</a>
+                <a class="btn" href="./docs.html">Read the docs</a>
+            </div>
+        </section>
+
+        <section class="container section">
+            <h2>What Honorlock does</h2>
+            <p>Honorlock is a hybrid proctoring service that combines AI monitoring with live human proctors who can intervene during an exam session. It typically uses a browser extension plus webcam and screen recording, and is priced per student or per exam session, which scales with usage.</p>
+            <h2 style="margin-top:28px;">How tinyproctor.js differs</h2>
+            <p>tinyproctor.js has no humans, no AI review queue, and no recordings — and therefore no per-session invoice. It gives your existing exam platform real-time integrity telemetry (tab switches, focus loss, paste events, fullscreen exits, idle gaps) that your own staff review on your own infrastructure.</p>
+        </section>
+
+        <section class="container section">
+            <h2>Side by side</h2>
+            <div class="table-wrap">
+                <table>
+                    <thead><tr><th>Dimension</th><th>tinyproctor.js</th><th>Honorlock</th></tr></thead>
+                    <tbody>
+                            <tr><td>Delivery</td><td>One script tag on the exam page</td><td>Browser extension + webcam session</td></tr>
+                            <tr><td>Live human proctors</td><td>No</td><td>Yes (pop-in intervention model)</td></tr>
+                            <tr><td>Recording</td><td>Never</td><td>Webcam + screen, AI-flagged</td></tr>
+                            <tr><td>Where data lives</td><td>Your server only</td><td>Vendor cloud</td></tr>
+                            <tr><td>Cost</td><td>Free, MIT license</td><td>Per-student / per-session pricing</td></tr>
+                            <tr><td>Setup time</td><td>Minutes (script + endpoint)</td><td>Procurement, onboarding, LMS integration</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="note">Comparison reflects publicly documented behavior as of June 2026 and typical configurations; vendor capabilities and pricing change — verify details with the vendor before purchasing.</p>
+        </section>
+
+        <section class="container section">
+            <h2>Which should you choose?</h2>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>Choose Honorlock if…</h3>
+                    <p>you need live intervention during exams, identity verification, or recorded evidence for academic-integrity hearings — and the per-session economics work for your exam volume.</p>
+                </div>
+                <div class="card">
+                    <h3>Choose tinyproctor.js if…</h3>
+                    <p>your exam volume makes per-session pricing painful, your assessments are low/medium-stakes, or you want integrity signals inside your own platform without sending student data to a third party.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="container section">
+            <h2>Frequently asked questions</h2>
+                <h3>How much does tinyproctor.js cost compared to Honorlock?</h3>
+                <p>tinyproctor.js is free and MIT-licensed with no per-student or per-session fees. Honorlock is commercial and typically priced per student or per exam session; contact the vendor for a quote.</p>
+                <h3>Does tinyproctor.js have live proctors?</h3>
+                <p>No. It is a monitoring library, not a proctoring service. It produces a violation timeline and integrity score that your own instructors or admins review.</p>
+                <h3>Can I use tinyproctor.js with my LMS?</h3>
+                <p>Yes — any platform where you can add a script tag to the exam page works, including Moodle, WordPress LMS plugins, and custom exam systems.</p>
+            <div class="cta-row">
+                <a class="btn btn-primary" href="./demo/exam.html">See it work in 30 seconds</a>
+                <a class="bmc" href="https://buymeacoffee.com/tanzir" rel="noopener">☕ Support this project</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container footer-inner">
+            <div class="footer-note">tinyproctor.js — free &amp; open source. Built by <a href="https://tanziro.com" style="text-decoration:underline;">tanziro.com</a> · <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;">Buy me a coffee</a></div>
+            <div class="footer-links">
+                <a href="./index.html">Home</a>
+                <a href="./docs.html">Docs</a>
+                <a href="./compare.html">Compare</a>
+                <a href="./demo/exam.html">Demo</a>
+                <a href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

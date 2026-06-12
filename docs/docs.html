@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation — tinyproctor.js Implementation Guide</title>
+    <meta name="description" content="Complete implementation guide for tinyproctor.js: quick start, configuration reference, JavaScript API, payload schema, PHP and Node.js collector examples, CORS setup, and FAQ.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://tanzir71.github.io/tinyproctorjs/docs.html">
+    <meta property="og:title" content="tinyproctor.js Documentation">
+    <meta property="og:description" content="Quick start, full configuration reference, API docs, and self-hosted collector examples for browser exam integrity monitoring.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tanzir71.github.io/tinyproctorjs/docs.html">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%91%81%EF%B8%8F%3C%2Ftext%3E%3C%2Fsvg%3E">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "TechArticle",
+      "headline": "tinyproctor.js Implementation Guide",
+      "description": "Complete implementation guide for tinyproctor.js browser exam integrity monitoring.",
+      "author": { "@type": "Person", "name": "Tanzir", "url": "https://tanziro.com" }
+    }
+    </script>
+    <style>
+        :root {
+            --bg: #ffffff; --fg: #09090b; --muted: #52525b; --muted-2: #71717a;
+            --border: #e4e4e7; --panel: #ffffff; --hover: #fafafa; --focus: #09090b;
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+        body {
+            margin: 0; background: var(--bg); color: var(--fg);
+            font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            line-height: 1.6;
+        }
+        a { color: inherit; text-decoration: none; }
+        .container { margin: 0 auto; max-width: 1152px; padding: 0 16px; }
+        header {
+            position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px);
+        }
+        .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; }
+        .brand { display: inline-flex; align-items: center; gap: 12px; }
+        .logo { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); }
+        .logo span { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
+        .brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
+        nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+        .nav-link { display: inline-flex; height: 36px; align-items: center; border-radius: 8px; padding: 0 8px; color: var(--muted); }
+        .nav-link:hover, .nav-link[aria-current="page"] { background: var(--hover); color: var(--fg); }
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 14px;
+            border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--fg);
+            font-size: 14px; font-weight: 500;
+        }
+        .btn:hover { background: var(--hover); }
+        .btn-primary { background: var(--fg); border-color: var(--fg); color: #fff; }
+        .btn-primary:hover { background: #18181b; }
+        .mono, code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+        code { font-size: 0.9em; background: var(--hover); border: 1px solid var(--border); border-radius: 6px; padding: 1px 5px; }
+        pre {
+            background: #0f172a; color: #e2e8f0; border-radius: 12px; padding: 16px;
+            font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 12px 0 0;
+        }
+        pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
+        .layout { display: grid; grid-template-columns: 1fr; gap: 32px; padding: 40px 0 80px; }
+        @media (min-width: 960px) { .layout { grid-template-columns: 220px minmax(0, 1fr); } }
+        .toc { position: sticky; top: 76px; align-self: start; display: none; }
+        @media (min-width: 960px) { .toc { display: block; } }
+        .toc-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-2); font-weight: 700; margin-bottom: 10px; }
+        .toc a { display: block; padding: 5px 0; font-size: 13px; color: var(--muted); border-left: 2px solid transparent; padding-left: 10px; margin-left: -12px; }
+        .toc a:hover { color: var(--fg); }
+        h1 { margin: 0; font-size: 34px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; }
+        .lead { margin-top: 12px; font-size: 16px; color: var(--muted); max-width: 640px; }
+        h2 { margin: 48px 0 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; padding-top: 8px; border-top: 1px solid var(--border); }
+        section > h2:first-child { border-top: none; margin-top: 0; }
+        h3 { margin: 24px 0 0; font-size: 16px; font-weight: 600; }
+        p { margin: 10px 0 0; font-size: 14.5px; color: var(--muted); max-width: 720px; }
+        p strong { color: var(--fg); }
+        .table-wrap { overflow-x: auto; margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; }
+        table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 13.5px; }
+        thead th {
+            text-align: left; font-size: 11.5px; letter-spacing: 0.07em; text-transform: uppercase;
+            color: var(--muted-2); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--hover);
+        }
+        tbody td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--muted); vertical-align: top; line-height: 1.5; }
+        tbody tr:first-child td { border-top: none; }
+        tbody td:first-child { white-space: nowrap; }
+        tbody td strong { color: var(--fg); }
+        .callout {
+            margin-top: 16px; border: 1px solid var(--border); border-left: 3px solid var(--fg);
+            border-radius: 10px; padding: 12px 16px; font-size: 14px; color: var(--muted); max-width: 720px;
+        }
+        .callout strong { color: var(--fg); }
+        ul { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 14.5px; }
+        li { margin: 5px 0; }
+        footer { border-top: 1px solid var(--border); padding: 40px 0; }
+        .footer-inner { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; }
+        @media (min-width: 640px) { .footer-inner { flex-direction: row; align-items: center; } }
+        .footer-note { font-size: 12px; color: var(--muted-2); }
+        .footer-links { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; }
+        .footer-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 4px; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-inner">
+            <a class="brand" href="./index.html">
+                <div class="logo"><span>TP</span></div>
+                <span class="brand-name">tinyproctor.js</span>
+            </a>
+            <nav>
+                <a class="nav-link" href="./index.html#features">Features</a>
+                <a class="nav-link" href="./docs.html" aria-current="page">Docs</a>
+                <a class="nav-link" href="./compare.html">Compare</a>
+                <a class="nav-link" href="./demo/exam.html">Demo</a>
+                <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container layout">
+        <aside class="toc" aria-label="Table of contents">
+            <div class="toc-title">On this page</div>
+            <a href="#quick-start">Quick start</a>
+            <a href="#what-it-detects">What it detects</a>
+            <a href="#configuration">Configuration</a>
+            <a href="#scoring">Integrity scoring</a>
+            <a href="#js-api">JavaScript API</a>
+            <a href="#payload">Payload schema</a>
+            <a href="#collector">Building a collector</a>
+            <a href="#cors">CORS</a>
+            <a href="#lms">LMS integration</a>
+            <a href="#privacy">Privacy &amp; limits</a>
+            <a href="#faq">FAQ</a>
+        </aside>
+
+        <article>
+            <h1>Implementation guide</h1>
+            <p class="lead">
+                Everything you need to add browser integrity monitoring to your exam or quiz platform:
+                one script tag on the exam page, one endpoint on your server.
+            </p>
+
+            <section id="quick-start">
+                <h2>Quick start</h2>
+                <p><strong>1. Host the script.</strong> Download <code>tinyproctor.min.js</code> (~6&nbsp;KB gzipped) from the <a href="https://github.com/tanzir71/tinyproctorjs" style="text-decoration:underline;">GitHub repo</a> and serve it from your own domain. No CDN, no third-party calls.</p>
+                <p><strong>2. Embed it on the exam page.</strong></p>
+<pre><code>&lt;script
+  src="/js/tinyproctor.min.js"
+  data-tinyproctor
+  data-endpoint="https://your-domain.com/collect.php"
+  data-exam-id="FINAL_2026_06"
+  data-attempt-id="ATTEMPT_12345"
+  data-candidate-label="student_42"&gt;
+&lt;/script&gt;</code></pre>
+                <p><strong>3. Receive events.</strong> The script batches events and POSTs JSON to your <code>data-endpoint</code>. See <a href="#collector" style="text-decoration:underline;">Building a collector</a> for copy-paste PHP and Node.js examples.</p>
+                <p>That's the whole integration. Monitoring starts automatically as soon as the script loads — no init call needed.</p>
+            </section>
+
+            <section id="what-it-detects">
+                <h2>What it detects</h2>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Violation key</th><th>Trigger</th><th>Default weight</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>tab_hidden</code></td><td>Candidate switches to another tab or minimizes the browser (<code>visibilitychange</code>)</td><td>10</td></tr>
+                            <tr><td><code>window_blur</code></td><td>Browser window loses focus — e.g. clicking another app (<code>blur</code>)</td><td>5</td></tr>
+                            <tr><td><code>fullscreen_exit</code></td><td>Candidate leaves fullscreen mode (<code>fullscreenchange</code>)</td><td>25</td></tr>
+                            <tr><td><code>devtools_key</code></td><td>F12, Ctrl/Cmd+Shift+I/J/C, Cmd+Alt+I key combos</td><td>20</td></tr>
+                            <tr><td><code>devtools_resize</code></td><td>Heuristic: large delta between outer and inner window size</td><td>15</td></tr>
+                            <tr><td><code>copy_attempt</code></td><td>Copy event anywhere on the page</td><td>10</td></tr>
+                            <tr><td><code>cut_attempt</code></td><td>Cut event anywhere on the page</td><td>10</td></tr>
+                            <tr><td><code>paste_attempt</code></td><td>Paste event anywhere on the page</td><td>15</td></tr>
+                            <tr><td><code>context_menu</code></td><td>Right-click / context menu opened</td><td>5</td></tr>
+                            <tr><td><code>print_attempt</code></td><td>Ctrl/Cmd+P or the browser's <code>beforeprint</code> event</td><td>10</td></tr>
+                            <tr><td><code>page_idle</code></td><td>No mouse/keyboard/scroll/touch activity for <code>idleMs</code> (default 60s)</td><td>5</td></tr>
+                            <tr><td><code>custom</code> / any key</td><td>Your own logic via <code>instance.markViolation(key, data)</code></td><td>—</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p>Every signal can be disabled individually. Clipboard and context-menu actions can also be <em>blocked</em> (not just detected) with <code>data-block-clipboard</code> and <code>data-block-contextmenu</code>.</p>
+                <p>A heartbeat event fires every 30 seconds (configurable) so your backend can detect dropped sessions and confirm the monitor stayed alive for the full attempt.</p>
+            </section>
+
+            <section id="configuration">
+                <h2>Configuration reference</h2>
+                <p>All options are set as <code>data-*</code> attributes on the script tag (or as a config object via <code>TinyProctor.init()</code>).</p>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Attribute</th><th>Default</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>data-endpoint</code></td><td>—</td><td><strong>Required for reporting.</strong> Collector URL (absolute or relative). Without it, events are kept locally only.</td></tr>
+                            <tr><td><code>data-exam-id</code></td><td><code>""</code></td><td>Identifier for the exam, included in every event.</td></tr>
+                            <tr><td><code>data-attempt-id</code></td><td>auto</td><td><strong>Strongly recommended.</strong> Per-attempt ID from your exam system. Auto-generated if omitted.</td></tr>
+                            <tr><td><code>data-candidate-label</code></td><td><code>""</code></td><td>Pseudonymous candidate label. Avoid raw PII; use your system's internal ID.</td></tr>
+                            <tr><td><code>data-silent</code></td><td><code>true</code></td><td><code>false</code> shows a small read-only badge with live score and violation count.</td></tr>
+                            <tr><td><code>data-heartbeat-ms</code></td><td><code>30000</code></td><td>Heartbeat interval (clamped 5s–10min).</td></tr>
+                            <tr><td><code>data-devtools</code></td><td><code>true</code></td><td>Enable DevTools heuristics (keys + resize).</td></tr>
+                            <tr><td><code>data-clipboard</code></td><td><code>true</code></td><td>Detect copy/cut/paste.</td></tr>
+                            <tr><td><code>data-block-clipboard</code></td><td><code>false</code></td><td>Also <em>prevent</em> copy/cut/paste (calls <code>preventDefault</code>).</td></tr>
+                            <tr><td><code>data-contextmenu</code></td><td><code>true</code></td><td>Detect right-click.</td></tr>
+                            <tr><td><code>data-block-contextmenu</code></td><td><code>false</code></td><td>Also block the context menu.</td></tr>
+                            <tr><td><code>data-print</code></td><td><code>true</code></td><td>Detect print attempts (Ctrl/Cmd+P, <code>beforeprint</code>).</td></tr>
+                            <tr><td><code>data-idle</code></td><td><code>true</code></td><td>Detect inactivity.</td></tr>
+                            <tr><td><code>data-idle-ms</code></td><td><code>60000</code></td><td>Inactivity threshold (clamped 10s–30min).</td></tr>
+                            <tr><td><code>data-weights</code></td><td>defaults</td><td>JSON object overriding violation weights, e.g. <code>'{"tab_hidden":20}'</code>. Unlisted keys keep defaults.</td></tr>
+                            <tr><td><code>data-flush-ms</code></td><td><code>900</code></td><td>Batch flush interval (150–5000ms).</td></tr>
+                            <tr><td><code>data-batch-max</code></td><td><code>20</code></td><td>Max events per POST (1–100).</td></tr>
+                            <tr><td><code>data-queue-max</code></td><td><code>250</code></td><td>Max locally queued events before oldest are dropped (50–5000).</td></tr>
+                            <tr><td><code>data-credentials</code></td><td><code>omit</code></td><td>Fetch credentials mode: <code>omit</code> | <code>same-origin</code> | <code>include</code>.</td></tr>
+                            <tr><td><code>data-format</code></td><td><code>json</code></td><td><code>form</code> sends <code>payload=&lt;urlencoded json&gt;</code> for legacy PHP backends.</td></tr>
+                            <tr><td><code>data-devtools-resize-threshold</code></td><td><code>160</code></td><td>Pixel delta that triggers the resize heuristic (60–600).</td></tr>
+                            <tr><td><code>data-devtools-resize-cooldown-ms</code></td><td><code>10000</code></td><td>Cooldown between resize violations (1–60s).</td></tr>
+                            <tr><td><code>data-autoinit</code></td><td><code>true</code></td><td><code>false</code> disables auto-start; call <code>TinyProctor.init()</code> yourself.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="scoring">
+                <h2>Integrity scoring</h2>
+                <p>The score starts at 100 and decreases with each weighted violation, clamped to <code>[0, 100]</code>:</p>
+                <pre><code>score = 100 − Σ ( weight[key] × count[key] )</code></pre>
+                <p>Weights are fully configurable. A practical reading of the default scale:</p>
+                <ul>
+                    <li><strong>80–100</strong> — clean or near-clean session</li>
+                    <li><strong>50–79</strong> — worth a human review</li>
+                    <li><strong>0–49</strong> — multiple or severe flags; investigate</li>
+                </ul>
+                <div class="callout">
+                    <strong>Important:</strong> the score is a triage signal, not proof of cheating. A dropped window
+                    focus can be a notification popup; a paste can be legitimate. Always pair automated flags with
+                    human review before any academic-integrity decision.
+                </div>
+            </section>
+
+            <section id="js-api">
+                <h2>JavaScript API</h2>
+                <p>For programmatic control, disable auto-init and configure in JS:</p>
+<pre><code>&lt;script src="/js/tinyproctor.min.js" data-tinyproctor data-autoinit="false"&gt;&lt;/script&gt;
+&lt;script&gt;
+  var proctor = TinyProctor.init({
+    endpoint: '/collect',
+    examId: 'FINAL_2026_06',
+    attemptId: attempt.id,
+    candidateLabel: user.internalId,
+    weights: { fullscreen_exit: 30 },
+    onViolation: function (key, data, state) {
+      // e.g. warn the candidate in your own UI
+      if (state.integrityScore &lt; 50) showWarningBanner()
+    },
+    onEvent: function (payload) {
+      // every event (heartbeats included), before it is sent
+    }
+  })
+
+  // Enforce fullscreen at exam start (must be called from a user gesture)
+  startButton.addEventListener('click', function () {
+    proctor.requestFullscreen()
+  })
+&lt;/script&gt;</code></pre>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>TinyProctor.init(config?)</code></td><td>Create + start the singleton instance. Returns the existing instance if already initialized.</td></tr>
+                            <tr><td><code>TinyProctor.get()</code></td><td>Return the current instance (or <code>null</code>).</td></tr>
+                            <tr><td><code>TinyProctor.destroy()</code></td><td>Stop monitoring, flush the queue, remove listeners and badge, and allow re-init.</td></tr>
+                            <tr><td><code>TinyProctor.version</code></td><td>Library version string.</td></tr>
+                            <tr><td><code>instance.getState()</code></td><td>Snapshot: score, counts, recent violations, queue stats, focus/fullscreen/idle state.</td></tr>
+                            <tr><td><code>instance.getConfig()</code></td><td>Resolved configuration.</td></tr>
+                            <tr><td><code>instance.flush()</code></td><td>Force-send queued events immediately.</td></tr>
+                            <tr><td><code>instance.stop()</code></td><td>Stop monitoring and flush.</td></tr>
+                            <tr><td><code>instance.requestFullscreen(el?)</code></td><td>Request fullscreen (call from a user gesture).</td></tr>
+                            <tr><td><code>instance.exitFullscreen()</code></td><td>Exit fullscreen.</td></tr>
+                            <tr><td><code>instance.markViolation(key, data?)</code></td><td>Record a custom violation with your own key and payload.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="payload">
+                <h2>Payload schema</h2>
+                <p>Events are sent as JSON batches via <code>navigator.sendBeacon()</code> (on page exit) or <code>fetch(..., { keepalive: true })</code>:</p>
+<pre><code>{
+  "schemaVersion": 1,
+  "clientVersion": "1.0.0",
+  "kind": "batch",
+  "sessionId": "tp_18f3a...",
+  "examId": "FINAL_2026_06",
+  "attemptId": "ATTEMPT_12345",
+  "candidateLabel": "student_42",
+  "sentAt": "2026-06-12T10:30:00.000Z",
+  "userAgent": "Mozilla/5.0 ...",
+  "language": "en-US",
+  "screen": { "w": 1920, "h": 1080 },
+  "timezoneOffsetMin": -360,
+  "events": [
+    {
+      "schemaVersion": 1,
+      "clientVersion": "1.0.0",
+      "clientTime": "2026-06-12T10:29:58.512Z",
+      "eventType": "visibility",
+      "violationKey": "tab_hidden",
+      "eventData": { "visibilityState": "hidden" },
+      "pageUrl": "https://exams.school.edu/final",
+      "visibilityState": "hidden",
+      "hasFocus": false,
+      "isFullscreen": false,
+      "violationCount": 3,
+      "integrityScore": 75
+    }
+  ]
+}</code></pre>
+                <p><code>eventType</code> is one of <code>heartbeat</code>, <code>visibility</code>, <code>focus</code>, <code>fullscreen</code>, <code>devtools</code>, <code>clipboard</code>, <code>contextmenu</code>, <code>print</code>, <code>idle</code>, <code>custom</code>. Informational events (e.g. focus regained) have <code>violationKey: null</code>.</p>
+                <p>Delivery is at-least-once: failed batches are re-queued with exponential backoff, so treat <code>(sessionId, clientTime, eventType, violationKey)</code> as a deduplication key if exact counts matter.</p>
+            </section>
+
+            <section id="collector">
+                <h2>Building a collector</h2>
+                <h3>PHP + SQLite (single file)</h3>
+<pre><code>&lt;?php // collect.php
+header('Access-Control-Allow-Origin: https://exams.school.edu');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
+
+$raw = file_get_contents('php://input');
+// support data-format="form" too:
+if (isset($_POST['payload'])) $raw = $_POST['payload'];
+$batch = json_decode($raw, true);
+if (!$batch || ($batch['kind'] ?? '') !== 'batch') { http_response_code(400); exit; }
+
+$db = new PDO('sqlite:' . __DIR__ . '/events.sqlite');
+$db-&gt;exec('CREATE TABLE IF NOT EXISTS events (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT, exam_id TEXT, attempt_id TEXT, candidate TEXT,
+  client_time TEXT, event_type TEXT, violation_key TEXT,
+  integrity_score REAL, violation_count INTEGER, data TEXT,
+  received_at TEXT DEFAULT CURRENT_TIMESTAMP
+)');
+$stmt = $db-&gt;prepare('INSERT INTO events
+  (session_id, exam_id, attempt_id, candidate, client_time, event_type,
+   violation_key, integrity_score, violation_count, data)
+  VALUES (?,?,?,?,?,?,?,?,?,?)');
+foreach (($batch['events'] ?? []) as $e) {
+  $stmt-&gt;execute([
+    $batch['sessionId'] ?? '', $batch['examId'] ?? '', $batch['attemptId'] ?? '',
+    $batch['candidateLabel'] ?? '', $e['clientTime'] ?? '', $e['eventType'] ?? '',
+    $e['violationKey'] ?? null, $e['integrityScore'] ?? null,
+    $e['violationCount'] ?? 0, json_encode($e['eventData'] ?? null)
+  ]);
+}
+http_response_code(204);</code></pre>
+
+                <h3>Node.js (no dependencies)</h3>
+<pre><code>// collect.mjs — node collect.mjs
+import { createServer } from 'node:http'
+import { appendFileSync } from 'node:fs'
+
+const ORIGIN = 'https://exams.school.edu'
+
+createServer((req, res) =&gt; {
+  res.setHeader('Access-Control-Allow-Origin', ORIGIN)
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  if (req.method === 'OPTIONS') { res.writeHead(204).end(); return }
+  if (req.method !== 'POST' || req.url !== '/collect') { res.writeHead(404).end(); return }
+
+  let body = ''
+  req.on('data', (c) =&gt; { body += c; if (body.length &gt; 1e6) req.destroy() })
+  req.on('end', () =&gt; {
+    try {
+      const batch = JSON.parse(body)
+      if (batch.kind !== 'batch') throw new Error('bad payload')
+      appendFileSync('events.ndjson', JSON.stringify(batch) + '\n')
+      res.writeHead(204).end()
+    } catch {
+      res.writeHead(400).end()
+    }
+  })
+}).listen(8787)</code></pre>
+                <div class="callout">
+                    <strong>Production checklist:</strong> validate <code>attemptId</code> against an active attempt in
+                    your database, rate-limit per session, cap request body size, and store the raw batch for audit.
+                    Reject events for attempts that are already submitted or expired.
+                </div>
+            </section>
+
+            <section id="cors">
+                <h2>CORS</h2>
+                <p>If the exam page and collector are on <strong>different origins</strong>, the collector must respond to <code>OPTIONS</code> preflight and send <code>Access-Control-Allow-Origin</code> (see examples above). Notes:</p>
+                <ul>
+                    <li><code>navigator.sendBeacon()</code> sends no custom headers and skips preflight when the content type is simple — both collector examples accept it as-is.</li>
+                    <li>For cookie-based auth across origins, set <code>data-credentials="include"</code> and return <code>Access-Control-Allow-Credentials: true</code> with an explicit (non-wildcard) origin.</li>
+                    <li>Same-origin deployments (recommended) need no CORS configuration at all.</li>
+                </ul>
+            </section>
+
+            <section id="lms">
+                <h2>LMS &amp; platform integration</h2>
+                <h3>Moodle</h3>
+                <p>Add the script tag to your quiz page via a theme layout override, the "Additional HTML" admin setting (footer), or a local plugin that injects it only on <code>mod/quiz</code> attempt pages. Pass Moodle's attempt ID into <code>data-attempt-id</code>.</p>
+                <h3>WordPress (LearnDash, Tutor LMS, Quiz Maker)</h3>
+                <p>Enqueue the script conditionally on quiz pages with <code>wp_enqueue_script</code>, then print the data attributes with a <code>script_loader_tag</code> filter — or simply paste the tag into your quiz template.</p>
+                <h3>Custom platforms</h3>
+                <p>Render the script tag server-side with the attempt's real IDs. Generate <code>data-attempt-id</code> when the attempt starts and verify it server-side when events arrive.</p>
+            </section>
+
+            <section id="privacy">
+                <h2>Privacy &amp; honest limits</h2>
+                <p><strong>What it never collects:</strong> no camera, no microphone, no screen recording, no keystroke contents, no clipboard contents. Events describe <em>that</em> something happened (e.g. "paste occurred in a textarea"), never <em>what</em> was pasted.</p>
+                <p><strong>Self-hosted by design:</strong> the script and the data both live on your infrastructure. No third-party processors, which dramatically simplifies GDPR/FERPA conversations.</p>
+                <p><strong>Honest limits:</strong> client-side JavaScript cannot see other monitors, other devices, or a phone next to the keyboard, and a technically skilled candidate can disable any in-page script. tinyproctor.js is a <em>deterrence and triage</em> layer for low/medium-stakes assessments — for high-stakes certification, combine it with stronger controls. See the <a href="./compare.html" style="text-decoration:underline;">honest comparison</a>.</p>
+            </section>
+
+            <section id="faq">
+                <h2>FAQ</h2>
+                <h3>Does it work on mobile?</h3>
+                <p>Yes — visibility, focus, clipboard, idle, and heartbeat signals all work on mobile browsers. Fullscreen and DevTools signals are desktop-oriented.</p>
+                <h3>Will it slow the exam page down?</h3>
+                <p>No. It's ~6&nbsp;KB gzipped, dependency-free, uses passive event listeners and batched network calls (one small POST every ~0.9s at most).</p>
+                <h3>What happens if the network drops?</h3>
+                <p>Events queue locally (up to <code>queueMax</code>) and retry with exponential backoff. On page close, the queue is flushed via <code>sendBeacon</code>, which browsers deliver even during unload.</p>
+                <h3>Can candidates fake a perfect score?</h3>
+                <p>A sufficiently technical candidate can — this is true of every client-side tool. Use heartbeat gaps and missing-session detection server-side to flag tampering: a session with no events at all is itself a red flag.</p>
+                <h3>Is it really free?</h3>
+                <p>Yes — MIT licensed, free for commercial use. If it saves you a vendor contract, consider <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;">buying me a coffee</a> to support maintenance.</p>
+            </section>
+        </article>
+    </main>
+
+    <footer>
+        <div class="container footer-inner">
+            <div class="footer-note">tinyproctor.js — free &amp; open source. Built by <a href="https://tanziro.com" style="text-decoration:underline;">tanziro.com</a> · <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;">Buy me a coffee</a></div>
+            <div class="footer-links">
+                <a href="./index.html">Home</a>
+                <a href="./demo/exam.html">Demo</a>
+                <a href="./compare.html">Compare</a>
+                <a href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

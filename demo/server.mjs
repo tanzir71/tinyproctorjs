@@ -88,6 +88,11 @@ const server = http.createServer(async (req, res) => {
     return
   }
 
+  if (req.method === 'GET' && url.pathname === '/docs') {
+    serveFile(res, path.join(rootDir, 'docs.html'), false)
+    return
+  }
+
   if (req.method === 'GET' && url.pathname === '/tinyproctor.js') {
     serveFile(res, path.join(rootDir, 'tinyproctor.js'), false)
     return
@@ -120,6 +125,16 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'GET' && url.pathname === '/events') {
     send(res, 200, withCors({ 'Content-Type': 'application/json; charset=utf-8' }), JSON.stringify({ ok: true, count: events.length, events }))
     return
+  }
+
+  // static fallback: serve any file that exists under the repo root (no traversal)
+  if (req.method === 'GET') {
+    const safe = path.normalize(url.pathname).replace(/^([.][.][\/\\])+/, '')
+    const filePath = path.join(rootDir, safe)
+    if (filePath.startsWith(rootDir) && fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      serveFile(res, filePath, false)
+      return
+    }
   }
 
   send(res, 404, { 'Content-Type': 'text/plain; charset=utf-8' }, 'Not found')
