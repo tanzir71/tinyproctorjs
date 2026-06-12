@@ -101,6 +101,19 @@
         .footer-note { font-size: 12px; color: var(--muted-2); }
         .footer-links { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; }
         .footer-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 4px; }
+        /* unified site header */
+        header { background: rgba(244, 243, 238, 0.92); }
+        header .brand { display: inline-flex; align-items: center; gap: 12px; }
+        header .logo { display: grid; place-items: center; width: 34px; height: 34px; border: 0; background: var(--fg); }
+        header .logo span { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 11px; color: var(--bg); letter-spacing: 0.05em; }
+        header nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; font-size: 14px; }
+        header .nav-link { display: inline-flex; height: 36px; align-items: center; padding: 0 10px; color: var(--muted); transition: background-color 120ms ease, color 120ms ease; }
+        header .nav-link:hover { background: var(--hover, var(--bg-alt)); color: var(--fg); }
+        header .nav-link[aria-current="page"] { background: transparent; color: var(--muted); }
+        header .btn { height: 40px; padding: 0 18px; border: 1px solid var(--fg); background: transparent; color: var(--fg); font-size: 14px; font-weight: 550; font-family: inherit; transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease; }
+        header .btn:hover { background: var(--fg); color: var(--bg); }
+        header .btn-primary { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+        header .btn-primary:hover { background: #2540ff; border-color: #2540ff; color: #fff; }
     </style>
 </head>
 <body>
@@ -112,6 +125,7 @@
             </a>
             <nav>
                 <a class="nav-link" href="./index.html#features">Features</a>
+                <a class="nav-link" href="./index.html#setup">Setup</a>
                 <a class="nav-link" href="./docs.html" aria-current="page">Docs</a>
                 <a class="nav-link" href="./compare.html">Compare</a>
                 <a class="nav-link" href="./demo/exam.html">Demo</a>

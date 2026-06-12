@@ -83,7 +83,7 @@
         /* hero */
         .hero { border-bottom: 1px solid var(--border); position: relative; overflow: hidden; }
         .hero-inner { padding: 84px 0 72px; position: relative; }
-        .hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: center; }
+        .hero-grid { display: grid; grid-template-columns: 1fr; gap: 48px; align-items: start; }
         @media (min-width: 980px) { .hero-grid { grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); } }
         h1 { margin: 22px 0 0; font-size: 44px; font-weight: 650; letter-spacing: -0.035em; line-height: 1.02; text-wrap: balance; }
         @media (min-width: 640px) { h1 { font-size: 60px; } }
@@ -140,28 +140,28 @@
 
         /* setup paths */
         .paths { display: grid; grid-template-columns: 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
-        @media (min-width: 1024px) { .paths { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 1024px) { .paths { grid-template-columns: minmax(0, 1fr) minmax(0, 2.08fr) minmax(0, 1fr); } }
+        .path { background: var(--panel); padding: 24px 22px; display: flex; flex-direction: column; min-width: 0; }
+        .path-tag { align-self: flex-start; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; padding: 4px 8px; border: 1px solid var(--border); color: var(--muted-2); }
+        .path-tag.rec { background: var(--acc); border-color: var(--acc); color: #fff; }
+        .path h3 { margin-top: 14px; font-size: 16px; }
+        .path > p:not(.path-note) { margin: 8px 0 16px; font-size: 13.5px; color: var(--muted); line-height: 1.6; flex: none; }
+        .pre-block .c { color: #76776f; } .pre-block { position: relative; flex: none; min-width: 0; background: var(--dk-bg); color: var(--dk-ink); font-family: var(--f-mono); font-size: 12px; line-height: 1.65; padding: 14px; padding-right: 58px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
+        .pre-block.nowrap { white-space: pre; word-break: normal; }
+        .pre-copy { position: absolute; top: 8px; right: 8px; height: 26px; padding: 0 10px; font-size: 10.5px; font-family: var(--f-mono); letter-spacing: 0.06em; border: 1px solid var(--dk-rule); background: var(--dk-bg-2); color: var(--dk-ink); cursor: pointer; }
+        .pre-copy:hover { background: var(--acc); border-color: var(--acc); }
+        .path-note { margin: 12px 0 0; font-size: 12px; color: var(--muted-2); line-height: 1.55; min-height: 38px; flex: none; }
+        .path-note a { border-bottom: 1px solid var(--acc); color: var(--fg); }
         @supports (grid-template-rows: subgrid) {
             @media (min-width: 1024px) {
                 .paths { grid-template-rows: repeat(5, auto); }
                 .path { display: grid; grid-template-rows: subgrid; grid-row: span 5; align-items: start; }
                 .path-tag { justify-self: start; }
-                .path > p { margin-bottom: 16px; }
+                .path > p:not(.path-note) { margin-bottom: 16px; }
                 .pre-block { align-self: stretch; }
-                .path-note { align-self: end; min-height: 0; }
+                .path-note { align-self: start; min-height: 0; }
             }
         }
-        .path { background: var(--panel); padding: 24px 22px; display: flex; flex-direction: column; }
-        .path-tag { align-self: flex-start; font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; padding: 4px 8px; border: 1px solid var(--border); color: var(--muted-2); }
-        .path-tag.rec { background: var(--acc); border-color: var(--acc); color: #fff; }
-        .path h3 { margin-top: 14px; font-size: 16px; }
-        .path > p { margin: 8px 0 16px; font-size: 13.5px; color: var(--muted); line-height: 1.6; flex: none; }
-        .pre-block .c { color: #76776f; } .pre-block { position: relative; flex: 1 0 auto; background: var(--dk-bg); color: var(--dk-ink); font-family: var(--f-mono); font-size: 12px; line-height: 1.65; padding: 14px; padding-right: 58px; overflow-x: auto; white-space: pre-wrap; word-break: break-word; }
-        .pre-block.nowrap { white-space: pre; word-break: normal; }
-        .pre-copy { position: absolute; top: 8px; right: 8px; height: 26px; padding: 0 10px; font-size: 10.5px; font-family: var(--f-mono); letter-spacing: 0.06em; border: 1px solid var(--dk-rule); background: var(--dk-bg-2); color: var(--dk-ink); cursor: pointer; }
-        .pre-copy:hover { background: var(--acc); border-color: var(--acc); }
-        .path-note { margin-top: 12px; font-size: 12px; color: var(--muted-2); line-height: 1.55; min-height: 38px; flex: none; }
-        .path-note a { border-bottom: 1px solid var(--acc); color: var(--fg); }
 
         /* dark support band */
         .support { background: var(--dk-bg); color: var(--dk-ink); border-bottom: 1px solid var(--dk-rule); }
@@ -181,6 +181,19 @@
         .footer-links { display: flex; flex-wrap: wrap; gap: 14px; font-size: 12px; font-family: var(--f-mono); }
         .footer-links a { color: var(--muted); }
         .footer-links a:hover { color: var(--acc); }
+        /* unified site header */
+        header { background: rgba(244, 243, 238, 0.92); }
+        header .brand { display: inline-flex; align-items: center; gap: 12px; }
+        header .logo { display: grid; place-items: center; width: 34px; height: 34px; border: 0; background: var(--fg); }
+        header .logo span { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 11px; color: var(--bg); letter-spacing: 0.05em; }
+        header nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; font-size: 14px; }
+        header .nav-link { display: inline-flex; height: 36px; align-items: center; padding: 0 10px; color: var(--muted); transition: background-color 120ms ease, color 120ms ease; }
+        header .nav-link:hover { background: var(--hover, var(--bg-alt)); color: var(--fg); }
+        header .nav-link[aria-current="page"] { background: transparent; color: var(--muted); }
+        header .btn { height: 40px; padding: 0 18px; border: 1px solid var(--fg); background: transparent; color: var(--fg); font-size: 14px; font-weight: 550; font-family: inherit; transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease; }
+        header .btn:hover { background: var(--fg); color: var(--bg); }
+        header .btn-primary { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+        header .btn-primary:hover { background: #2540ff; border-color: #2540ff; color: #fff; }
     </style>
 </head>
 <body>
@@ -197,7 +210,7 @@
                 <a class="nav-link" href="./docs.html">Docs</a>
                 <a class="nav-link" href="./compare.html">Compare</a>
                 <a class="nav-link" href="./demo/exam.html">Demo</a>
-                <a class="btn btn-primary" style="height:40px;" href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
+                <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
             </nav>
         </div>
     </header>
