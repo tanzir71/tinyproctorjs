@@ -127,6 +127,27 @@ STYLE = """
         .btn:hover { background: var(--hover); }
         .btn-primary { background: var(--fg); border-color: var(--fg); color: #fff; }
         .btn-primary:hover { background: #18181b; }
+        .site-menu { display: flex; align-items: center; margin-left: auto; }
+        .menu-toggle { display: none; }
+        .menu-toggle::-webkit-details-marker { display: none; }
+        .menu-toggle span { display: block; width: 18px; height: 2px; background: currentColor; transition: transform 120ms ease, opacity 120ms ease; }
+        @media (max-width: 639px) {
+            .header-inner { position: relative; min-height: 58px; align-items: center; flex-direction: row; gap: 12px; }
+            header .brand { min-width: 0; }
+            header .brand-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .site-menu { flex: none; margin-left: auto; }
+            .menu-toggle { display: inline-grid; width: 40px; height: 40px; place-items: center; gap: 4px; border: 1px solid var(--fg); background: transparent; color: var(--fg); cursor: pointer; }
+            .menu-toggle:focus-visible { outline: 2px solid var(--focus, #2540ff); outline-offset: 2px; }
+            header nav { display: none; position: absolute; left: 0; right: 0; top: calc(100% + 1px); z-index: 50; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; margin: 0; padding: 8px; overflow: visible; border: 1px solid var(--border); background: var(--bg); box-shadow: 0 18px 36px rgba(10, 10, 10, 0.14); }
+            .site-menu[open] nav { display: flex; }
+            header .nav-link, header .btn { width: 100%; height: 42px; justify-content: flex-start; padding: 0 12px; }
+            header .btn-primary { justify-content: center; }
+            main, .layout > *, .grid > *, .demo-grid > *, .hero-grid > *, .paths > * { min-width: 0; }
+            pre, .snippet, .table-wrap { max-width: 100%; }
+            .site-menu[open] .menu-toggle span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+            .site-menu[open] .menu-toggle span:nth-child(2) { opacity: 0; }
+            .site-menu[open] .menu-toggle span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+        }
         .mono, code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
         code { font-size: 0.9em; background: var(--hover); border: 1px solid var(--border); border-radius: 6px; padding: 1px 5px; }
         .hero { padding: 56px 0 8px; }
@@ -208,13 +229,20 @@ def render(v):
                 <div class="logo"><span>TP</span></div>
                 <span class="brand-name">tinyproctor.js</span>
             </a>
-            <nav>
-                <a class="nav-link" href="./index.html#features">Features</a>
-                <a class="nav-link" href="./docs.html">Docs</a>
-                <a class="nav-link" href="./compare.html">Compare</a>
-                <a class="nav-link" href="./demo/exam.html">Demo</a>
-                <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
-            </nav>
+            <details class="site-menu">
+                <summary class="menu-toggle" aria-label="Open navigation">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </summary>
+                <nav aria-label="Primary navigation">
+                    <a class="nav-link" href="./index.html#features">Features</a>
+                    <a class="nav-link" href="./docs.html">Docs</a>
+                    <a class="nav-link" href="./compare.html">Compare</a>
+                    <a class="nav-link" href="./demo/exam.html">Demo</a>
+                    <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+                </nav>
+            </details>
         </div>
     </header>
 
