@@ -47,7 +47,7 @@ function hasDeclaration(css, selector, declarationPattern) {
 }
 
 function expectedMenuScript(page) {
-  return page.includes('/demo/') ? '../site-menu.js' : './site-menu.js'
+  return page.startsWith('demo/') || page.includes('/demo/') ? '../site-menu.js' : './site-menu.js'
 }
 
 test('landing page inner containers preserve horizontal gutters', () => {

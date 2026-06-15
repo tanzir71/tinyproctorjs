@@ -313,6 +313,7 @@ def render(v):
             </div>
         </div>
     </footer>
+    <script src="./site-menu.js"></script>
 </body>
 </html>
 """
