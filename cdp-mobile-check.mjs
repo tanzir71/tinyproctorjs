@@ -164,12 +164,17 @@ async function main() {
     const closedState = await evaluate(cdp, `(() => {
       const nav = document.querySelector('header nav')
       const toggle = document.querySelector('.menu-toggle')
+      const toggleRect = toggle.getBoundingClientRect()
       return {
         url: location.href,
         title: document.title,
         bodyLength: document.body.innerText.length,
         hasToggle: !!toggle,
         toggleDisplay: getComputedStyle(toggle).display,
+        toggleWidth: Math.round(toggleRect.width),
+        toggleHeight: Math.round(toggleRect.height),
+        toggleGap: getComputedStyle(toggle).gap,
+        spanTransition: getComputedStyle(toggle.querySelector('span')).transitionDuration,
         navDisplay: getComputedStyle(nav).display,
         menuOpen: document.querySelector('.site-menu').open,
         horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth
@@ -206,6 +211,27 @@ async function main() {
     const docsMobileOpen = 'C:\\tmp\\tinyproctor-mobile-docs-open.png'
     await capture(cdp, docsMobileOpen)
 
+    await navigate(cdp, fileUrl('demo/exam.html'))
+    const demoState = await evaluate(cdp, `(() => {
+      function left(selector) {
+        return Math.round(document.querySelector(selector).getBoundingClientRect().left)
+      }
+      function rightGap(selector) {
+        const rect = document.querySelector(selector).getBoundingClientRect()
+        return Math.round(window.innerWidth - rect.right)
+      }
+      return {
+        title: document.title,
+        brandLeft: left('header .brand'),
+        toggleRightGap: rightGap('.menu-toggle'),
+        heroContentLeft: left('.hero-inner .pill'),
+        firstCardLeft: left('.section .card'),
+        horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth
+      }
+    })()`)
+    const demoMobile = 'C:\\tmp\\tinyproctor-mobile-demo.png'
+    await capture(cdp, demoMobile)
+
     await cdp.send('Emulation.setDeviceMetricsOverride', {
       width: 1280,
       height: 800,
@@ -231,10 +257,11 @@ async function main() {
       closedState,
       openState,
       docsState,
+      demoState,
       desktopState,
       runtimeErrors,
       logMessages,
-      screenshots: { mobileClosed, mobileOpen, docsMobileOpen, desktopCompare },
+      screenshots: { mobileClosed, mobileOpen, docsMobileOpen, demoMobile, desktopCompare },
     }, null, 2))
   } finally {
     edge.kill()

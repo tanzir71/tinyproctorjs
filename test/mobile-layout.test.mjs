@@ -50,6 +50,17 @@ function expectedMenuScript(page) {
   return page.startsWith('demo/') || page.includes('/demo/') ? '../site-menu.js' : './site-menu.js'
 }
 
+function htmlFor(page) {
+  return readFileSync(join(root, page), 'utf8')
+}
+
+function containerUsesClass(html, className) {
+  return Array.from(html.matchAll(/class="([^"]*)"/g)).some((match) => {
+    const classes = match[1].trim().split(/\s+/)
+    return classes.includes('container') && classes.includes(className)
+  })
+}
+
 test('landing page inner containers preserve horizontal gutters', () => {
   for (const page of landingPages) {
     const css = cssFor(page)
@@ -75,7 +86,7 @@ test('landing page hero grid allows mobile columns to shrink', () => {
 
 test('site pages expose a mobile hamburger menu instead of a desktop nav strip', () => {
   for (const page of sitePages) {
-    const html = readFileSync(join(root, page), 'utf8')
+    const html = htmlFor(page)
     const css = cssFor(page)
     assert.match(html, /<details class="site-menu">/, `${page} wraps navigation in a native menu disclosure`)
     assert.match(html, /<summary class="menu-toggle" aria-label="Open navigation">/, `${page} has an accessible hamburger summary`)
@@ -87,9 +98,20 @@ test('site pages expose a mobile hamburger menu instead of a desktop nav strip',
     )
     assert.match(css, /@media\s*\(max-width:\s*639px\)/, `${page} has mobile-specific layout rules`)
     assert.ok(hasDeclaration(css, '.menu-toggle', /display\s*:\s*none\s*;/), `${page} hides the hamburger on desktop`)
-    assert.ok(hasDeclaration(css, '.menu-toggle', /display\s*:\s*inline-grid\s*;/), `${page} shows the hamburger on mobile`)
+    assert.ok(hasDeclaration(css, '.menu-toggle', /display\s*:\s*block\s*;/), `${page} shows the hamburger on mobile`)
     assert.ok(hasDeclaration(css, 'header nav', /display\s*:\s*none\s*;/), `${page} hides menu links behind the hamburger on mobile`)
     assert.ok(hasDeclaration(css, '.site-menu[open] nav', /display\s*:\s*flex\s*;/), `${page} reveals menu links when opened`)
+  }
+})
+
+test('site pages use a compact static hamburger icon', () => {
+  for (const page of sitePages) {
+    const css = cssFor(page)
+    assert.ok(hasDeclaration(css, '.menu-toggle', /width\s*:\s*36px\s*;.*height\s*:\s*36px\s*;/), `${page} uses a compact menu button`)
+    assert.ok(hasDeclaration(css, '.menu-toggle span', /position\s*:\s*absolute\s*;/), `${page} draws tight hamburger bars`)
+    assert.doesNotMatch(css, /menu-toggle[^{}]*\{[^}]*gap\s*:/, `${page} does not add internal icon gap`)
+    assert.doesNotMatch(css, /menu-toggle span[^{}]*\{[^}]*transition\s*:/, `${page} does not animate hamburger bars`)
+    assert.doesNotMatch(css, /site-menu\[open\]\s+\.menu-toggle span/, `${page} keeps the hamburger icon static when open`)
   }
 })
 
@@ -104,6 +126,21 @@ test('site pages let dense mobile content shrink inside the viewport', () => {
       hasDeclaration(css, 'pre, .snippet, .table-wrap', /max-width\s*:\s*100%\s*;/),
       `${page} keeps code blocks and table wrappers constrained to the viewport`
     )
+  }
+})
+
+test('container-bound layout classes preserve horizontal gutters', () => {
+  const layoutClasses = ['header-inner', 'hero-inner', 'hero', 'section', 'layout']
+  for (const page of sitePages) {
+    const html = htmlFor(page)
+    const css = cssFor(page)
+    for (const className of layoutClasses) {
+      if (!containerUsesClass(html, className)) continue
+      const selector = `.${className}`
+      const [body] = ruleBodies(css, selector)
+      assert.ok(body, `${page} defines ${selector}`)
+      assert.doesNotMatch(body, /padding\s*:\s*[^;]*\s0(?:px)?(?:\s|;)/, `${page} ${selector} does not zero side padding on a container`)
+    }
   }
 })
 
