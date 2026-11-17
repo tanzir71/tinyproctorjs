@@ -25,7 +25,7 @@ function assert(cond, name) {
   }
 }
 
-function makeDom({ scriptAttrs = '', fetchOk = true, captureFetch = null } = {}) {
+function makeDom({ scriptAttrs = '', fetchOk = true, captureFetch = null, before = null } = {}) {
   const dom = new JSDOM(
     `<!doctype html><html><body><textarea id="answer"></textarea>
      <script data-tinyproctor ${scriptAttrs}>/* placeholder */</script>
@@ -39,6 +39,7 @@ function makeDom({ scriptAttrs = '', fetchOk = true, captureFetch = null } = {})
     return Promise.resolve({ ok: fetchOk, status: fetchOk ? 200 : 500 })
   }
   // do NOT define sendBeacon so fetch path is used (deterministic)
+  if (before) before(window)
   window.eval(SRC)
   return dom
 }
@@ -60,7 +61,7 @@ console.log('\n== Boot & config ==')
   const dom = makeDom()
   const TP = dom.window.TinyProctor
   assert(!!TP, 'TinyProctor global exists')
-  assert(TP.version === '1.0.0', 'version is 1.0.0')
+  assert(TP.version === '1.1.0', 'version is 1.1.0')
   const inst = TP.get()
   assert(!!inst, 'auto-init created an instance')
   const st = inst.getState()
@@ -286,6 +287,152 @@ console.log('\n== Badge (silent=false) ==')
   assert(badge.textContent.indexOf('95') !== -1, 'badge shows updated score')
   win.TinyProctor.destroy()
   assert(!win.document.querySelector('[data-tinyproctor-badge]'), 'badge removed on destroy')
+}
+
+console.log('\n== v1.1: focus changes between fields are not violations ==')
+{
+  const dom = makeDom()
+  const win = dom.window
+  const ta = win.document.getElementById('answer')
+  const inst = win.TinyProctor.get()
+  ta.dispatchEvent(new win.FocusEvent('focus'))
+  ta.dispatchEvent(new win.FocusEvent('blur'))
+  assert(!inst.getState().violationCounts.window_blur, 'element blur (field change) records no window_blur')
+  dispatch(win, win, 'blur')
+  assert(inst.getState().violationCounts.window_blur === 1, 'window blur still records window_blur')
+  win.TinyProctor.destroy()
+}
+
+console.log('\n== v1.1: sequence numbers and session event ==')
+{
+  const captured = []
+  const dom = makeDom({ scriptAttrs: 'data-endpoint="/collect"', captureFetch: captured })
+  const win = dom.window
+  dispatch(win, win, 'blur')
+  dispatch(win, win, 'blur')
+  await new Promise((r) => setTimeout(r, 50))
+  const events = captured.flatMap((c) => JSON.parse(c.opts.body).events)
+  const seqs = events.map((e) => e.seq)
+  assert(seqs.length > 0 && seqs.every((n) => Number.isInteger(n)), 'every event carries an integer seq')
+  assert(new Set(seqs).size === seqs.length, 'seq values are unique')
+  assert(events.some((e) => e.eventType === 'session'), 'session start event is sent')
+  win.TinyProctor.destroy()
+}
+
+console.log('\n== v1.1: session continuity (sessionStorage) ==')
+{
+  const dom = makeDom({ scriptAttrs: 'data-attempt-id="A9"' })
+  const win = dom.window
+  const first = win.TinyProctor.get()
+  dispatch(win, win, 'blur')
+  const sid = first.getState().sessionId
+  win.TinyProctor.destroy() // keep the saved session, as a page change would
+  const second = win.TinyProctor.init({ attemptId: 'A9' })
+  const st = second.getState()
+  assert(st.resumed === true, 'second init resumes the saved session')
+  assert(st.sessionId === sid, 'sessionId is kept across pages')
+  assert(st.violationCounts.window_blur === 1, 'violation counts are kept across pages')
+  win.TinyProctor.destroy(true)
+  assert(win.sessionStorage.getItem('tinyproctor:A9') === null, 'destroy(true) clears the saved session')
+  const third = win.TinyProctor.init({})
+  assert(third.getState().resumed === false && third.getConfig().persist === false, 'no persistence without an explicit attemptId')
+  win.TinyProctor.destroy()
+}
+
+console.log('\n== v1.1: page unload is not a tab switch ==')
+{
+  const dom = makeDom()
+  const win = dom.window
+  const doc = win.document
+  const inst = win.TinyProctor.get()
+  dispatch(win, win, 'pagehide')
+  Object.defineProperty(doc, 'visibilityState', { configurable: true, get: () => 'hidden' })
+  Object.defineProperty(doc, 'hidden', { configurable: true, get: () => true })
+  dispatch(win, doc, 'visibilitychange')
+  assert(!inst.getState().violationCounts.tab_hidden, 'hidden during unload records no tab_hidden')
+  win.TinyProctor.destroy()
+}
+
+console.log('\n== v1.1: new signals ==')
+{
+  const dom = makeDom({
+    before: (w) => {
+      Object.defineProperty(w.screen, 'isExtended', { configurable: true, get: () => true })
+      Object.defineProperty(w.navigator, 'webdriver', { configurable: true, get: () => true })
+    }
+  })
+  const win = dom.window
+  const doc = win.document
+  const inst = win.TinyProctor.get()
+  let st = inst.getState()
+  assert(st.violationCounts.multi_screen === 1, 'multi_screen recorded when screen.isExtended')
+  assert(st.violationCounts.automation_flag === 1, 'automation_flag recorded when navigator.webdriver')
+  dispatch(win, doc, 'drop')
+  assert(inst.getState().violationCounts.drop_attempt === 1, 'drop_attempt recorded on text drop')
+  const ta = doc.getElementById('answer')
+  dispatch(win, ta, 'beforeinput', { inputType: 'insertText', data: 'x'.repeat(60) })
+  st = inst.getState()
+  assert(st.violationCounts.insert_burst === 1, 'insert_burst recorded on a 60-character insert')
+  const ev = st.recentViolations.filter((v) => v.violationKey === 'insert_burst').pop()
+  assert(ev && ev.eventData.chars === 60 && !('data' in ev.eventData), 'insert_burst records the length, never the text')
+  dispatch(win, ta, 'beforeinput', { inputType: 'insertText', data: 'abc' })
+  assert(inst.getState().violationCounts.insert_burst === 1, 'short inserts (typing) are ignored')
+  win.TinyProctor.destroy()
+}
+
+console.log('\n== v1.1: new signals can be turned off ==')
+{
+  const dom = makeDom({
+    scriptAttrs: 'data-screens="false" data-automation="false" data-insert="false"',
+    before: (w) => {
+      Object.defineProperty(w.screen, 'isExtended', { configurable: true, get: () => true })
+      Object.defineProperty(w.navigator, 'webdriver', { configurable: true, get: () => true })
+    }
+  })
+  const win = dom.window
+  const inst = win.TinyProctor.get()
+  dispatch(win, win.document.getElementById('answer'), 'beforeinput', { inputType: 'insertText', data: 'x'.repeat(60) })
+  assert(inst.getState().violationCount === 0, 'disabled v1.1 signals record nothing')
+  win.TinyProctor.destroy()
+}
+
+console.log('\n== v1.1: blurDedupeMs scores a tab switch once ==')
+{
+  const dom = makeDom({ scriptAttrs: 'data-autoinit="false"' })
+  const win = dom.window
+  const doc = win.document
+  const inst = win.TinyProctor.init({ blurDedupeMs: 300 })
+  dispatch(win, win, 'blur')
+  Object.defineProperty(doc, 'visibilityState', { configurable: true, get: () => 'hidden' })
+  Object.defineProperty(doc, 'hidden', { configurable: true, get: () => true })
+  dispatch(win, doc, 'visibilitychange')
+  const st = inst.getState()
+  assert(st.violationCounts.tab_hidden === 1 && !st.violationCounts.window_blur, 'blur followed by tab_hidden counts once')
+  win.TinyProctor.destroy()
+}
+
+console.log('\n== v1.1: text format and byte-capped batches ==')
+{
+  const captured = []
+  const dom = makeDom({ scriptAttrs: 'data-endpoint="/collect" data-format="text" data-batch-bytes="4096"', captureFetch: captured })
+  const win = dom.window
+  const inst = win.TinyProctor.get()
+  for (let i = 0; i < 20; i++) inst.markViolation('custom', { pad: 'x'.repeat(900) })
+  await new Promise((r) => setTimeout(r, 2500))
+  const bodies = captured.map((c) => c.opts.body)
+  assert(captured.length > 1 && captured.every((c) => c.opts.headers['Content-Type'].indexOf('text/plain') === 0), 'data-format="text" sends text/plain')
+  assert(bodies.every((b) => b.length <= 4096), 'every batch stays under batchBytes')
+  win.TinyProctor.destroy()
+}
+
+console.log('\n== v1.1: no auto-init without a script tag ==')
+{
+  const dom = new JSDOM('<!doctype html><html><body></body></html>', { url: 'https://exam.example.com/', runScripts: 'outside-only' })
+  dom.window.eval(SRC)
+  assert(!dom.window.TinyProctor.get(), 'importing without a script tag does not auto-start')
+  const inst = dom.window.TinyProctor.init({ examId: 'X' })
+  assert(inst.getConfig().examId === 'X', 'explicit init(config) is honoured')
+  dom.window.TinyProctor.destroy()
 }
 
 console.log('\n== Results ==')

@@ -1,15 +1,17 @@
 # tinyproctor.js
 
 > Minimal, self-hosted, dependency-free browser integrity monitoring for online exams.
-> One static JS file + one collector endpoint you implement. MIT license. v1.0.0.
+> One static JS file + one collector endpoint you implement. MIT license. v1.1.0.
 
 This file is the implementation contract for AI agents integrating tinyproctor.js.
 
 ## Files
 
-- Library (minified, ~16 KB raw / ~6 KB gzipped): https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js
+- Library (minified, ~21 KB raw / under 7 KB gzipped): https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js
 - Library (readable source): https://tanzir71.github.io/tinyproctorjs/tinyproctor.js
+- TypeScript types: https://tanzir71.github.io/tinyproctorjs/tinyproctor.d.ts
 - Human docs: https://tanzir71.github.io/tinyproctorjs/docs.html
+- Changelog: https://github.com/tanzir71/tinyproctorjs/blob/main/CHANGELOG.md
 - Repo: https://github.com/tanzir71/tinyproctorjs
 
 ## Integration steps
@@ -26,22 +28,31 @@ This file is the implementation contract for AI agents integrating tinyproctor.j
 ```
 
 Monitoring auto-starts on load. No init call needed unless `data-autoinit="false"`.
+Put the tag on EVERY page of a multi-page quiz with the same data-attempt-id: the
+library keeps one session and one score per attempt across pages (sessionStorage, per tab).
+When the attempt is submitted, call `TinyProctor.destroy(true)` to forget the saved session.
+
+Bundlers: `import TinyProctor from 'tinyproctor'` (or the .mjs entry) never auto-starts;
+call `TinyProctor.init({ endpoint, examId, attemptId, ... })`.
 
 3. Implement the collector endpoint (POST, same origin or CORS-enabled).
 
 ## Collector contract
 
-The client POSTs JSON batches (Content-Type: application/json; also sent via
-navigator.sendBeacon on page close — accept both). Respond 2xx to acknowledge;
-non-2xx responses are retried with exponential backoff (at-least-once delivery —
-dedupe on sessionId + clientTime + eventType + violationKey if needed).
+The client POSTs JSON batches (Content-Type: application/json by default; also sent via
+navigator.sendBeacon on page close — accept both). With data-format="text" the same JSON
+arrives as text/plain; with data-format="form" it arrives as payload=<urlencoded JSON>.
+Parse the body as JSON regardless of content type. Respond 2xx to acknowledge; non-2xx
+responses are retried with exponential backoff (at-least-once delivery). Dedupe on
+(sessionId, seq): seq is a per-session counter that increases by 1 for every event, so a
+gap in seq means events were lost.
 
 Request body:
 
 ```json
 {
   "schemaVersion": 1,
-  "clientVersion": "1.0.0",
+  "clientVersion": "1.1.0",
   "kind": "batch",
   "sessionId": "tp_...",
   "examId": "...",
@@ -54,9 +65,10 @@ Request body:
   "timezoneOffsetMin": -360,
   "events": [
     {
+      "seq": 12,
       "clientTime": "ISO-8601",
-      "eventType": "heartbeat|visibility|focus|fullscreen|devtools|clipboard|contextmenu|print|idle|custom",
-      "violationKey": "tab_hidden|window_blur|fullscreen_exit|devtools_key|devtools_resize|copy_attempt|cut_attempt|paste_attempt|context_menu|print_attempt|page_idle|custom or null",
+      "eventType": "session|heartbeat|visibility|focus|fullscreen|devtools|clipboard|contextmenu|print|idle|screen|automation|input|custom",
+      "violationKey": "tab_hidden|window_blur|fullscreen_exit|devtools_key|devtools_resize|copy_attempt|cut_attempt|paste_attempt|context_menu|print_attempt|page_idle|multi_screen|automation_flag|drop_attempt|insert_burst|custom or null",
       "eventData": {},
       "pageUrl": "...",
       "visibilityState": "...",
@@ -69,35 +81,56 @@ Request body:
 }
 ```
 
-Store at minimum: attemptId, sessionId, clientTime, eventType, violationKey,
+Useful eventData fields:
+- session: { resumed: bool, persisted: bool, gapMs: ms since the previous page of this attempt was last seen }
+- visibility (visible) and focus (focused: true): { awayMs: how long the candidate was away; 0 if still away }
+- visibility with { unload: true }: the page was unloading (next quiz page, reload). Not a violation.
+- insert_burst: { inputType, chars, targetTag } — the length only, never the text.
+
+Store at minimum: attemptId, sessionId, seq, clientTime, eventType, violationKey,
 integrityScore, violationCount, eventData (JSON), received_at. Index by attemptId.
+Unique key: (sessionId, seq).
 
 Validation recommendations: verify attemptId belongs to an active attempt,
-rate-limit per session, cap body at ~1 MB, reject events for submitted/expired attempts.
+rate-limit per session, cap body at ~1 MB (batches are capped at 48 KiB by default),
+reject events for submitted/expired attempts.
 
-CORS: only needed if collector origin differs from exam page origin. Then handle
-OPTIONS preflight and send Access-Control-Allow-Origin + Allow-Headers: Content-Type.
-sendBeacon sends no custom headers and skips preflight.
+Server-side flags worth computing: heartbeat gaps > 90 s, seq gaps, more than one sessionId
+per attempt, large session gapMs between pages, attempts with no events at all.
+
+CORS: only needed if collector origin differs from exam page origin. JSON bodies
+(default) need an OPTIONS preflight: answer it with Access-Control-Allow-Origin (the exact
+page origin), Access-Control-Allow-Methods: POST, Access-Control-Allow-Headers: Content-Type.
+sendBeacon always sends cookies, so also return Access-Control-Allow-Credentials: true and
+never "*" as the origin. To avoid preflight entirely, use data-format="text" (text/plain is
+CORS-safelisted).
 
 ## Key config (data-* attributes on the script tag)
 
 - data-endpoint (required for reporting) — collector URL
-- data-exam-id, data-attempt-id (recommended), data-candidate-label
+- data-exam-id, data-attempt-id (recommended; enables cross-page sessions), data-candidate-label
 - data-silent (default true; false shows a live score badge)
 - data-heartbeat-ms (default 30000)
 - data-idle-ms (default 60000), data-idle (default true)
 - data-clipboard / data-contextmenu / data-print / data-devtools (default true)
-- data-block-clipboard / data-block-contextmenu (default false — set true to prevent, not just detect)
+- data-screens (default true) — multi_screen via screen.isExtended (Chromium; no permission prompt)
+- data-automation (default true) — automation_flag via navigator.webdriver
+- data-insert (default true), data-insert-chars (default 40) — insert_burst threshold
+- data-block-clipboard / data-block-contextmenu (default false — set true to prevent, not just detect; block-clipboard also blocks text drops)
+- data-blur-dedupe-ms (default 0 = off) — e.g. 500 makes one tab switch count once (tab_hidden only)
+- data-persist (default true when data-attempt-id is set) — false disables cross-page sessions
+- data-batch-bytes (default 49152) — max bytes per POST
 - data-weights — JSON, e.g. '{"tab_hidden":20,"paste_attempt":25}' (unlisted keys keep defaults)
-- data-format="form" — sends payload=<urlencoded json> for legacy PHP backends
+- data-format — json (default) | text (text/plain, no CORS preflight) | form (payload=<urlencoded json>)
 - data-autoinit="false" — then call TinyProctor.init({...}) yourself
 
 ## JS API (optional)
 
-- TinyProctor.init(config) / TinyProctor.get() / TinyProctor.destroy()
-- instance.getState() → { integrityScore, violationCount, violationCounts, recentViolations, ... }
+- TinyProctor.init(config) / TinyProctor.get() / TinyProctor.destroy(clearSession?)
+- instance.getState() → { integrityScore, violationCount, violationCounts, recentViolations, seq, awayMs, resumed, ... }
 - instance.markViolation(key, data) — custom violations
 - instance.requestFullscreen(el) — call from a user gesture
+- instance.clearSession() — forget the saved cross-page session
 - config.onViolation(key, data, state) and config.onEvent(payload) callbacks
 
 ## Scoring
@@ -105,7 +138,12 @@ sendBeacon sends no custom headers and skips preflight.
 score = clamp(100 − Σ(weight × count), 0, 100). Default weights: tab_hidden 10,
 window_blur 5, fullscreen_exit 25, devtools_key 20, devtools_resize 15,
 copy_attempt 10, cut_attempt 10, paste_attempt 15, context_menu 5,
-print_attempt 10, page_idle 5.
+print_attempt 10, page_idle 5, multi_screen 10, automation_flag 25,
+drop_attempt 15, insert_burst 15.
+
+Note: a tab switch usually fires both tab_hidden and window_blur (15 points) unless
+data-blur-dedupe-ms is set. Moving between form fields and moving to the next quiz page
+are not violations.
 
 Important: scores are triage signals for human review, not proof of cheating.
 Never auto-fail a candidate from a client-side event alone.

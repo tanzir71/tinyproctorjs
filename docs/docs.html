@@ -11,7 +11,7 @@
     <meta property="og:description" content="Quick start, full configuration reference, API docs, and self-hosted collector examples for browser exam integrity monitoring.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://tanzir71.github.io/tinyproctorjs/docs.html">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%91%81%EF%B8%8F%3C%2Ftext%3E%3C%2Fsvg%3E">
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -130,7 +130,7 @@
             .menu-toggle { display: block; }
             .menu-toggle:focus-visible { outline: 2px solid var(--focus, #2540ff); outline-offset: 2px; }
             header nav { display: none; position: absolute; left: 16px; right: 16px; top: calc(100% + 1px); z-index: 50; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; margin: 0; padding: 8px; overflow: visible; border: 1px solid var(--border); background: var(--bg); box-shadow: 0 18px 36px rgba(10, 10, 10, 0.14); }
-            .site-menu[open] nav { display: flex; }
+            .site-menu[open] + nav { display: flex; }
             header .nav-link, header .btn { width: 100%; height: 42px; justify-content: flex-start; padding: 0 12px; }
             header .btn-primary { justify-content: center; }
             main, .layout > *, .grid > *, .demo-grid > *, .hero-grid > *, .paths > * { min-width: 0; }
@@ -143,7 +143,7 @@
     <header>
         <div class="container header-inner">
             <a class="brand" href="./index.html">
-                <div class="logo"><span>TP</span></div>
+                <svg class="logo-mark" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="display:block;flex:none;margin:0 -4px 0 -5px"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg>
                 <span class="brand-name">tinyproctor.js</span>
             </a>
             <details class="site-menu">
@@ -158,6 +158,8 @@
 
                 </summary>
 
+            </details>
+
                 <nav aria-label="Primary navigation">
                 <a class="nav-link" href="./index.html#features">Features</a>
                 <a class="nav-link" href="./index.html#setup">Setup</a>
@@ -166,8 +168,6 @@
                 <a class="nav-link" href="./demo/exam.html">Demo</a>
                 <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
                 </nav>
-
-            </details>
         </div>
     </header>
 
@@ -193,6 +193,12 @@
                 Everything you need to add browser integrity monitoring to your exam or quiz platform:
                 one script tag on the exam page, one endpoint on your server.
             </p>
+            <div class="callout">
+                <strong>New in v1.1:</strong> field changes and page changes are no longer penalised, one session and score
+                per attempt across quiz pages, <code>seq</code> on every event, time-away measurement, and four new signals
+                (<code>multi_screen</code>, <code>automation_flag</code>, <code>drop_attempt</code>, <code>insert_burst</code>).
+                Drop-in upgrade: replace the file. See the <a href="https://github.com/tanzir71/tinyproctorjs/blob/main/CHANGELOG.md" style="text-decoration:underline;" target="_blank" rel="noopener">changelog</a>.
+            </div>
 
             <section id="quick-start">
                 <h2>Quick start</h2>
@@ -216,7 +222,7 @@
                 <p>Want the repo with the demo server and test suite too? <code>git clone https://github.com/tanzir71/tinyproctorjs</code></p>
 
                 <h3>Path C — manual</h3>
-                <p><strong>1. Host the script.</strong> Serve <code>tinyproctor.min.js</code> (~6&nbsp;KB gzipped) from your own domain. No CDN, no third-party calls.</p>
+                <p><strong>1. Host the script.</strong> Serve <code>tinyproctor.min.js</code> (under 7&nbsp;KB gzipped) from your own domain. No CDN, no third-party calls.</p>
                 <p><strong>2. Embed it on the exam page.</strong></p>
 <pre><code>&lt;script
   src="/js/tinyproctor.min.js"
@@ -227,7 +233,7 @@
   data-candidate-label="student_42"&gt;
 &lt;/script&gt;</code></pre>
                 <p><strong>3. Receive events.</strong> The script batches events and POSTs JSON to your <code>data-endpoint</code>. A complete collector is ~30 lines — copy-paste the <a href="#collector" style="text-decoration:underline;">PHP or Node.js examples</a> below.</p>
-                <p>Monitoring starts automatically as soon as the script loads — no init call needed.</p>
+                <p>Monitoring starts automatically as soon as the script loads — no init call needed. On a multi-page quiz, put the same tag with the same <code>data-attempt-id</code> on every page: v1.1 keeps one session and one score per attempt across pages.</p>
             </section>
 
             <section id="what-it-detects">
@@ -237,22 +243,28 @@
                         <thead><tr><th>Violation key</th><th>Trigger</th><th>Default weight</th></tr></thead>
                         <tbody>
                             <tr><td><code>tab_hidden</code></td><td>Candidate switches to another tab or minimizes the browser (<code>visibilitychange</code>)</td><td>10</td></tr>
-                            <tr><td><code>window_blur</code></td><td>Browser window loses focus — e.g. clicking another app (<code>blur</code>)</td><td>5</td></tr>
+                            <tr><td><code>window_blur</code></td><td>Browser window loses focus — e.g. clicking another app (<code>blur</code>). Moving between form fields does not count.</td><td>5</td></tr>
                             <tr><td><code>fullscreen_exit</code></td><td>Candidate leaves fullscreen mode (<code>fullscreenchange</code>)</td><td>25</td></tr>
                             <tr><td><code>devtools_key</code></td><td>F12, Ctrl/Cmd+Shift+I/J/C, Cmd+Alt+I key combos</td><td>20</td></tr>
-                            <tr><td><code>devtools_resize</code></td><td>Heuristic: large delta between outer and inner window size</td><td>15</td></tr>
+                            <tr><td><code>devtools_resize</code></td><td>Heuristic: large gap between outer and inner window size — DevTools, but also docked side panels and AI sidebars. Checked on resize and once at start (desktop)</td><td>15</td></tr>
                             <tr><td><code>copy_attempt</code></td><td>Copy event anywhere on the page</td><td>10</td></tr>
                             <tr><td><code>cut_attempt</code></td><td>Cut event anywhere on the page</td><td>10</td></tr>
                             <tr><td><code>paste_attempt</code></td><td>Paste event anywhere on the page</td><td>15</td></tr>
                             <tr><td><code>context_menu</code></td><td>Right-click / context menu opened</td><td>5</td></tr>
                             <tr><td><code>print_attempt</code></td><td>Ctrl/Cmd+P or the browser's <code>beforeprint</code> event</td><td>10</td></tr>
                             <tr><td><code>page_idle</code></td><td>No mouse/keyboard/scroll/touch activity for <code>idleMs</code> (default 60s)</td><td>5</td></tr>
+                            <tr><td><code>drop_attempt</code> <small>v1.1</small></td><td>Text dragged and dropped into the page (bypasses paste events). File drops are ignored</td><td>15</td></tr>
+                            <tr><td><code>insert_burst</code> <small>v1.1</small></td><td>40+ characters inserted in one input event — the pattern of AI agent browsers, auto-typers and text expanders. Records the length, never the text</td><td>15</td></tr>
+                            <tr><td><code>multi_screen</code> <small>v1.1</small></td><td><code>screen.isExtended</code> is true at start or after a display change (Chromium; no permission prompt)</td><td>10</td></tr>
+                            <tr><td><code>automation_flag</code> <small>v1.1</small></td><td><code>navigator.webdriver</code> is true (WebDriver-controlled browser). Easy to spoof: <code>false</code> proves nothing</td><td>25</td></tr>
                             <tr><td><code>custom</code> / any key</td><td>Your own logic via <code>instance.markViolation(key, data)</code></td><td>—</td></tr>
                         </tbody>
                     </table>
                 </div>
                 <p>Every signal can be disabled individually. Clipboard and context-menu actions can also be <em>blocked</em> (not just detected) with <code>data-block-clipboard</code> and <code>data-block-contextmenu</code>.</p>
                 <p>A heartbeat event fires every 30 seconds (configurable) so your backend can detect dropped sessions and confirm the monitor stayed alive for the full attempt.</p>
+                <p><strong>Tab switches:</strong> switching tabs usually fires both <code>tab_hidden</code> and <code>window_blur</code> (15 points). Set <code>data-blur-dedupe-ms="500"</code> to count it once. Returning to the tab sends an info event with <code>awayMs</code>, so reviewers can tell a 2-second glance from a 4-minute absence.</p>
+                <p><strong>Page changes:</strong> moving to the next page of a quiz or reloading is not a tab switch. It is sent as an info event with <code>{ unload: true }</code>, and the next page's <code>session</code> event carries <code>gapMs</code>, the time between the two pages.</p>
             </section>
 
             <section id="configuration">
@@ -264,24 +276,31 @@
                         <tbody>
                             <tr><td><code>data-endpoint</code></td><td>—</td><td><strong>Required for reporting.</strong> Collector URL (absolute or relative). Without it, events are kept locally only.</td></tr>
                             <tr><td><code>data-exam-id</code></td><td><code>""</code></td><td>Identifier for the exam, included in every event.</td></tr>
-                            <tr><td><code>data-attempt-id</code></td><td>auto</td><td><strong>Strongly recommended.</strong> Per-attempt ID from your exam system. Auto-generated if omitted.</td></tr>
+                            <tr><td><code>data-attempt-id</code></td><td>auto</td><td><strong>Strongly recommended.</strong> Per-attempt ID from your exam system. Auto-generated if omitted. Setting it also enables cross-page sessions.</td></tr>
                             <tr><td><code>data-candidate-label</code></td><td><code>""</code></td><td>Pseudonymous candidate label. Avoid raw PII; use your system's internal ID.</td></tr>
                             <tr><td><code>data-silent</code></td><td><code>true</code></td><td><code>false</code> shows a small read-only badge with live score and violation count.</td></tr>
                             <tr><td><code>data-heartbeat-ms</code></td><td><code>30000</code></td><td>Heartbeat interval (clamped 5s–10min).</td></tr>
                             <tr><td><code>data-devtools</code></td><td><code>true</code></td><td>Enable DevTools heuristics (keys + resize).</td></tr>
                             <tr><td><code>data-clipboard</code></td><td><code>true</code></td><td>Detect copy/cut/paste.</td></tr>
-                            <tr><td><code>data-block-clipboard</code></td><td><code>false</code></td><td>Also <em>prevent</em> copy/cut/paste (calls <code>preventDefault</code>).</td></tr>
+                            <tr><td><code>data-block-clipboard</code></td><td><code>false</code></td><td>Also <em>prevent</em> copy/cut/paste and text drops (calls <code>preventDefault</code>).</td></tr>
                             <tr><td><code>data-contextmenu</code></td><td><code>true</code></td><td>Detect right-click.</td></tr>
                             <tr><td><code>data-block-contextmenu</code></td><td><code>false</code></td><td>Also block the context menu.</td></tr>
                             <tr><td><code>data-print</code></td><td><code>true</code></td><td>Detect print attempts (Ctrl/Cmd+P, <code>beforeprint</code>).</td></tr>
                             <tr><td><code>data-idle</code></td><td><code>true</code></td><td>Detect inactivity.</td></tr>
                             <tr><td><code>data-idle-ms</code></td><td><code>60000</code></td><td>Inactivity threshold (clamped 10s–30min).</td></tr>
+                            <tr><td><code>data-screens</code></td><td><code>true</code></td><td>Detect a second screen (<code>multi_screen</code>).</td></tr>
+                            <tr><td><code>data-automation</code></td><td><code>true</code></td><td>Detect <code>navigator.webdriver</code> (<code>automation_flag</code>).</td></tr>
+                            <tr><td><code>data-insert</code></td><td><code>true</code></td><td>Detect bulk text inserts (<code>insert_burst</code>).</td></tr>
+                            <tr><td><code>data-insert-chars</code></td><td><code>40</code></td><td>Characters inserted in one event that count as <code>insert_burst</code> (5–100000). Raise it if candidates use dictation software.</td></tr>
+                            <tr><td><code>data-blur-dedupe-ms</code></td><td><code>0</code></td><td>Drop a <code>window_blur</code> that comes with a <code>tab_hidden</code> within this many ms (0–5000). <code>0</code> keeps v1.0 scoring.</td></tr>
+                            <tr><td><code>data-persist</code></td><td><code>true</code>*</td><td>Keep one session per attempt across page loads in <code>sessionStorage</code>. *Only when <code>data-attempt-id</code> is set.</td></tr>
+                            <tr><td><code>data-batch-bytes</code></td><td><code>49152</code></td><td>Max bytes per POST (4096–61440); keepalive requests share a 64&nbsp;KiB budget.</td></tr>
                             <tr><td><code>data-weights</code></td><td>defaults</td><td>JSON object overriding violation weights, e.g. <code>'{"tab_hidden":20}'</code>. Unlisted keys keep defaults.</td></tr>
                             <tr><td><code>data-flush-ms</code></td><td><code>900</code></td><td>Batch flush interval (150–5000ms).</td></tr>
                             <tr><td><code>data-batch-max</code></td><td><code>20</code></td><td>Max events per POST (1–100).</td></tr>
                             <tr><td><code>data-queue-max</code></td><td><code>250</code></td><td>Max locally queued events before oldest are dropped (50–5000).</td></tr>
                             <tr><td><code>data-credentials</code></td><td><code>omit</code></td><td>Fetch credentials mode: <code>omit</code> | <code>same-origin</code> | <code>include</code>.</td></tr>
-                            <tr><td><code>data-format</code></td><td><code>json</code></td><td><code>form</code> sends <code>payload=&lt;urlencoded json&gt;</code> for legacy PHP backends.</td></tr>
+                            <tr><td><code>data-format</code></td><td><code>json</code></td><td><code>text</code> sends the JSON as <code>text/plain</code> (no CORS preflight); <code>form</code> sends <code>payload=&lt;urlencoded json&gt;</code> for legacy PHP backends.</td></tr>
                             <tr><td><code>data-devtools-resize-threshold</code></td><td><code>160</code></td><td>Pixel delta that triggers the resize heuristic (60–600).</td></tr>
                             <tr><td><code>data-devtools-resize-cooldown-ms</code></td><td><code>10000</code></td><td>Cooldown between resize violations (1–60s).</td></tr>
                             <tr><td><code>data-autoinit</code></td><td><code>true</code></td><td><code>false</code> disables auto-start; call <code>TinyProctor.init()</code> yourself.</td></tr>
@@ -338,15 +357,16 @@
                         <tbody>
                             <tr><td><code>TinyProctor.init(config?)</code></td><td>Create + start the singleton instance. Returns the existing instance if already initialized.</td></tr>
                             <tr><td><code>TinyProctor.get()</code></td><td>Return the current instance (or <code>null</code>).</td></tr>
-                            <tr><td><code>TinyProctor.destroy()</code></td><td>Stop monitoring, flush the queue, remove listeners and badge, and allow re-init.</td></tr>
+                            <tr><td><code>TinyProctor.destroy(clearSession?)</code></td><td>Stop monitoring, flush the queue, remove listeners and badge, and allow re-init. Pass <code>true</code> after submit to also forget the saved cross-page session.</td></tr>
                             <tr><td><code>TinyProctor.version</code></td><td>Library version string.</td></tr>
-                            <tr><td><code>instance.getState()</code></td><td>Snapshot: score, counts, recent violations, queue stats, focus/fullscreen/idle state.</td></tr>
+                            <tr><td><code>instance.getState()</code></td><td>Snapshot: score, counts, recent violations, queue stats, focus/fullscreen/idle state, plus <code>seq</code>, <code>awayMs</code> (total time away) and <code>resumed</code>.</td></tr>
                             <tr><td><code>instance.getConfig()</code></td><td>Resolved configuration.</td></tr>
                             <tr><td><code>instance.flush()</code></td><td>Force-send queued events immediately.</td></tr>
                             <tr><td><code>instance.stop()</code></td><td>Stop monitoring and flush.</td></tr>
                             <tr><td><code>instance.requestFullscreen(el?)</code></td><td>Request fullscreen (call from a user gesture).</td></tr>
                             <tr><td><code>instance.exitFullscreen()</code></td><td>Exit fullscreen.</td></tr>
                             <tr><td><code>instance.markViolation(key, data?)</code></td><td>Record a custom violation with your own key and payload.</td></tr>
+                            <tr><td><code>instance.clearSession()</code></td><td>Forget the saved cross-page session for this attempt.</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -357,7 +377,7 @@
                 <p>Events are sent as JSON batches via <code>navigator.sendBeacon()</code> (on page exit) or <code>fetch(..., { keepalive: true })</code>:</p>
 <pre><code>{
   "schemaVersion": 1,
-  "clientVersion": "1.0.0",
+  "clientVersion": "1.1.0",
   "kind": "batch",
   "sessionId": "tp_18f3a...",
   "examId": "FINAL_2026_06",
@@ -371,7 +391,8 @@
   "events": [
     {
       "schemaVersion": 1,
-      "clientVersion": "1.0.0",
+      "clientVersion": "1.1.0",
+      "seq": 42,
       "clientTime": "2026-06-12T10:29:58.512Z",
       "eventType": "visibility",
       "violationKey": "tab_hidden",
@@ -385,8 +406,9 @@
     }
   ]
 }</code></pre>
-                <p><code>eventType</code> is one of <code>heartbeat</code>, <code>visibility</code>, <code>focus</code>, <code>fullscreen</code>, <code>devtools</code>, <code>clipboard</code>, <code>contextmenu</code>, <code>print</code>, <code>idle</code>, <code>custom</code>. Informational events (e.g. focus regained) have <code>violationKey: null</code>.</p>
-                <p>Delivery is at-least-once: failed batches are re-queued with exponential backoff, so treat <code>(sessionId, clientTime, eventType, violationKey)</code> as a deduplication key if exact counts matter.</p>
+                <p><code>eventType</code> is one of <code>session</code>, <code>heartbeat</code>, <code>visibility</code>, <code>focus</code>, <code>fullscreen</code>, <code>devtools</code>, <code>clipboard</code>, <code>contextmenu</code>, <code>print</code>, <code>idle</code>, <code>screen</code>, <code>automation</code>, <code>input</code>, <code>custom</code>. Informational events (e.g. focus regained) have <code>violationKey: null</code>.</p>
+                <p>Delivery is at-least-once: failed batches are re-queued with exponential backoff, and unsent events survive page changes. <code>seq</code> increases by one per event within a session, so <code>(sessionId, seq)</code> is an exact deduplication key, and a gap in <code>seq</code> means events never arrived. Batches stay under 48&nbsp;KiB.</p>
+                <p>Useful <code>eventData</code>: <code>session</code> events carry <code>{ resumed, persisted, gapMs }</code>; return-to-tab and focus-back events carry <code>awayMs</code>; <code>insert_burst</code> carries <code>{ inputType, chars, targetTag }</code>.</p>
             </section>
 
             <section id="collector">
@@ -454,6 +476,7 @@
 header('Access-Control-Allow-Origin: https://exams.school.edu');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Credentials: true'); // beacons carry cookies
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(204); exit; }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); exit; }
 
@@ -466,18 +489,20 @@ if (!$batch || ($batch['kind'] ?? '') !== 'batch') { http_response_code(400); ex
 $db = new PDO('sqlite:' . __DIR__ . '/events.sqlite');
 $db-&gt;exec('CREATE TABLE IF NOT EXISTS events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  session_id TEXT, exam_id TEXT, attempt_id TEXT, candidate TEXT,
+  session_id TEXT, seq INTEGER, exam_id TEXT, attempt_id TEXT, candidate TEXT,
   client_time TEXT, event_type TEXT, violation_key TEXT,
   integrity_score REAL, violation_count INTEGER, data TEXT,
-  received_at TEXT DEFAULT CURRENT_TIMESTAMP
+  received_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (session_id, seq)
 )');
-$stmt = $db-&gt;prepare('INSERT INTO events
-  (session_id, exam_id, attempt_id, candidate, client_time, event_type,
+// INSERT OR IGNORE: retried batches are deduplicated by (session_id, seq)
+$stmt = $db-&gt;prepare('INSERT OR IGNORE INTO events
+  (session_id, seq, exam_id, attempt_id, candidate, client_time, event_type,
    violation_key, integrity_score, violation_count, data)
-  VALUES (?,?,?,?,?,?,?,?,?,?)');
+  VALUES (?,?,?,?,?,?,?,?,?,?,?)');
 foreach (($batch['events'] ?? []) as $e) {
   $stmt-&gt;execute([
-    $batch['sessionId'] ?? '', $batch['examId'] ?? '', $batch['attemptId'] ?? '',
+    $batch['sessionId'] ?? '', $e['seq'] ?? null, $batch['examId'] ?? '', $batch['attemptId'] ?? '',
     $batch['candidateLabel'] ?? '', $e['clientTime'] ?? '', $e['eventType'] ?? '',
     $e['violationKey'] ?? null, $e['integrityScore'] ?? null,
     $e['violationCount'] ?? 0, json_encode($e['eventData'] ?? null)
@@ -496,6 +521,7 @@ createServer((req, res) =&gt; {
   res.setHeader('Access-Control-Allow-Origin', ORIGIN)
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  res.setHeader('Access-Control-Allow-Credentials', 'true') // beacons carry cookies
   if (req.method === 'OPTIONS') { res.writeHead(204).end(); return }
   if (req.method !== 'POST' || req.url !== '/collect') { res.writeHead(404).end(); return }
 
@@ -521,10 +547,12 @@ createServer((req, res) =&gt; {
 
             <section id="cors">
                 <h2>CORS</h2>
-                <p>If the exam page and collector are on <strong>different origins</strong>, the collector must respond to <code>OPTIONS</code> preflight and send <code>Access-Control-Allow-Origin</code> (see examples above). Notes:</p>
+                <p>If the exam page and collector are on <strong>different origins</strong>, the collector must answer the <code>OPTIONS</code> preflight and send CORS headers (see the examples above). Notes:</p>
                 <ul>
-                    <li><code>navigator.sendBeacon()</code> sends no custom headers and skips preflight when the content type is simple — both collector examples accept it as-is.</li>
-                    <li>For cookie-based auth across origins, set <code>data-credentials="include"</code> and return <code>Access-Control-Allow-Credentials: true</code> with an explicit (non-wildcard) origin.</li>
+                    <li>The default JSON body (<code>application/json</code>) is not a CORS-safelisted type, so cross-origin requests, beacons included, need a successful preflight.</li>
+                    <li><code>navigator.sendBeacon()</code> always sends cookies. Reply with the exact page origin in <code>Access-Control-Allow-Origin</code> (never <code>*</code>) and <code>Access-Control-Allow-Credentials: true</code>, or the browser drops the response.</li>
+                    <li>To skip preflight entirely, set <code>data-format="text"</code>: the same JSON is sent as <code>text/plain</code>, which is safelisted. Parse the body as JSON whatever its content type.</li>
+                    <li>For cookie-based auth on the <code>fetch</code> path too, set <code>data-credentials="include"</code>.</li>
                     <li>Same-origin deployments (recommended) need no CORS configuration at all.</li>
                 </ul>
             </section>
@@ -543,7 +571,7 @@ createServer((req, res) =&gt; {
                 <h2>Privacy &amp; honest limits</h2>
                 <p><strong>What it never collects:</strong> no camera, no microphone, no screen recording, no keystroke contents, no clipboard contents. Events describe <em>that</em> something happened (e.g. "paste occurred in a textarea"), never <em>what</em> was pasted.</p>
                 <p><strong>Self-hosted by design:</strong> the script and the data both live on your infrastructure. No third-party processors, which dramatically simplifies GDPR/FERPA conversations.</p>
-                <p><strong>Honest limits:</strong> client-side JavaScript cannot see other monitors, other devices, or a phone next to the keyboard, and a technically skilled candidate can disable any in-page script. tinyproctor.js is a <em>deterrence and triage</em> layer for low/medium-stakes assessments — for high-stakes certification, combine it with stronger controls. See the <a href="./compare.html" style="text-decoration:underline;">honest comparison</a>.</p>
+                <p><strong>Honest limits:</strong> client-side JavaScript cannot see other devices or a phone next to the keyboard, and sees a second monitor only in Chromium browsers (<code>multi_screen</code>), and a technically skilled candidate can disable any in-page script. tinyproctor.js is a <em>deterrence and triage</em> layer for low/medium-stakes assessments — for high-stakes certification, combine it with stronger controls. See the <a href="./compare.html" style="text-decoration:underline;">honest comparison</a>.</p>
             </section>
 
             <section id="faq">
@@ -551,9 +579,13 @@ createServer((req, res) =&gt; {
                 <h3>Does it work on mobile?</h3>
                 <p>Yes — visibility, focus, clipboard, idle, and heartbeat signals all work on mobile browsers. Fullscreen and DevTools signals are desktop-oriented.</p>
                 <h3>Will it slow the exam page down?</h3>
-                <p>No. It's ~6&nbsp;KB gzipped, dependency-free, uses passive event listeners and batched network calls (one small POST every ~0.9s at most).</p>
+                <p>No. It's under 7&nbsp;KB gzipped, dependency-free, uses passive event listeners and batched network calls (one small POST every ~0.9s at most).</p>
                 <h3>What happens if the network drops?</h3>
-                <p>Events queue locally (up to <code>queueMax</code>) and retry with exponential backoff. On page close, the queue is flushed via <code>sendBeacon</code>, which browsers deliver even during unload.</p>
+                <p>Events queue locally (up to <code>queueMax</code>) and retry with exponential backoff. On page close, the queue is flushed via <code>sendBeacon</code>, which browsers deliver even during unload. With an attempt ID set, unsent events are also saved in <code>sessionStorage</code> and sent from the next page, and Chrome/Edge additionally schedule them with <code>fetchLater()</code> in case the tab is killed.</p>
+                <h3>Does it work with multi-page quizzes?</h3>
+                <p>Yes. Use the same <code>data-attempt-id</code> on every page and v1.1 keeps one session, one score and one <code>seq</code> sequence per attempt. Page changes are not counted as tab switches. Call <code>TinyProctor.destroy(true)</code> after submit.</p>
+                <h3>Does it detect AI agents and AI browsers?</h3>
+                <p>Partly, and honestly so. Agent browsers type answers in large inserts (<code>insert_burst</code>), WebDriver automation sets <code>navigator.webdriver</code> (<code>automation_flag</code>), and docked AI sidebars widen the outer/inner window gap (<code>devtools_resize</code>). A careful agent can avoid all three, and an AI on a second device is invisible to any browser script. Treat these as triage signals for human review.</p>
                 <h3>Can candidates fake a perfect score?</h3>
                 <p>A sufficiently technical candidate can — this is true of every client-side tool. Use heartbeat gaps and missing-session detection server-side to flag tampering: a session with no events at all is itself a red flag.</p>
                 <h3>Is it really free?</h3>

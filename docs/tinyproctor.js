@@ -1,5 +1,5 @@
 /*!
- * tinyproctor.js v1.0.0
+ * tinyproctor.js v1.1.0
  * Minimal, self-hosted, dependency-free browser exam integrity monitoring.
  * https://github.com/tanzir71/tinyproctorjs
  * License: MIT
@@ -8,7 +8,7 @@
   'use strict'
 
   var TinyProctor = {}
-  var VERSION = '1.0.0'
+  var VERSION = '1.1.0'
 
   /* ------------------------------------------------------------------ *
    * Utilities
@@ -57,10 +57,32 @@
   }
 
   function createId(prefix) {
-    var a = Math.random().toString(16).slice(2)
-    var b = Math.random().toString(16).slice(2)
-    var t = Date.now().toString(16)
-    return (prefix ? prefix + '_' : '') + t + '_' + a + b
+    var id
+    try {
+      id = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : ''
+    } catch (e) {
+      id = ''
+    }
+    if (!id) id = Date.now().toString(16) + '_' + Math.random().toString(16).slice(2) + Math.random().toString(16).slice(2)
+    return (prefix ? prefix + '_' : '') + id
+  }
+
+  /* sessionStorage helpers: per-tab persistence so paginated exams keep one session */
+  function storeGet(key) {
+    try {
+      return JSON.parse(window.sessionStorage.getItem(key) || 'null')
+    } catch (e) {
+      return null
+    }
+  }
+
+  function storeSet(key, value) {
+    try {
+      if (value == null) window.sessionStorage.removeItem(key)
+      else window.sessionStorage.setItem(key, JSON.stringify(value))
+    } catch (e) {
+      /* storage full or disabled: keep working in memory */
+    }
   }
 
   function throttle(fn, waitMs) {
@@ -125,15 +147,13 @@
   }
 
   function detectFullscreenElement() {
-    return document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement || null
+    return document.fullscreenElement || document.webkitFullscreenElement || null
   }
 
   function requestFullscreen(el) {
     var target = el || document.documentElement
     if (target.requestFullscreen) return target.requestFullscreen()
     if (target.webkitRequestFullscreen) return target.webkitRequestFullscreen()
-    if (target.mozRequestFullScreen) return target.mozRequestFullScreen()
-    if (target.msRequestFullscreen) return target.msRequestFullscreen()
     return Promise.reject(new Error('fullscreen_not_supported'))
   }
 
@@ -141,8 +161,6 @@
     if (!detectFullscreenElement()) return Promise.resolve()
     if (document.exitFullscreen) return document.exitFullscreen()
     if (document.webkitExitFullscreen) return document.webkitExitFullscreen()
-    if (document.mozCancelFullScreen) return document.mozCancelFullScreen()
-    if (document.msExitFullscreen) return document.msExitFullscreen()
     return Promise.reject(new Error('fullscreen_not_supported'))
   }
 
@@ -187,7 +205,11 @@
     paste_attempt: 15,
     context_menu: 5,
     print_attempt: 10,
-    page_idle: 5
+    page_idle: 5,
+    multi_screen: 10,
+    automation_flag: 25,
+    drop_attempt: 15,
+    insert_burst: 15
   }
 
   /* ------------------------------------------------------------------ *
@@ -199,21 +221,12 @@
     el.setAttribute('data-tinyproctor-badge', '1')
     el.setAttribute('role', 'status')
     el.setAttribute('aria-live', 'polite')
-    el.style.position = 'fixed'
-    el.style.top = '12px'
-    el.style.right = '12px'
-    el.style.zIndex = '2147483647'
-    el.style.fontFamily = 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif'
-    el.style.fontSize = '12px'
-    el.style.lineHeight = '1.2'
-    el.style.color = '#E6EDF7'
-    el.style.background = 'rgba(15, 27, 51, 0.92)'
-    el.style.border = '1px solid rgba(255,255,255,0.12)'
-    el.style.borderRadius = '10px'
-    el.style.padding = '8px 10px'
-    el.style.backdropFilter = 'blur(6px)'
-    el.style.boxShadow = '0 10px 30px rgba(0,0,0,0.35)'
-    el.style.pointerEvents = 'none'
+    el.style.cssText =
+      'position:fixed;top:12px;right:12px;z-index:2147483647;' +
+      'font:12px/1.2 ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;' +
+      'color:#E6EDF7;background:rgba(15,27,51,.92);border:1px solid rgba(255,255,255,.12);' +
+      'border-radius:10px;padding:8px 10px;backdrop-filter:blur(6px);' +
+      'box-shadow:0 10px 30px rgba(0,0,0,.35);pointer-events:none'
     el.textContent = 'Integrity: 100 | Violations: 0'
     return el
   }
@@ -250,7 +263,42 @@
       sentEvents: 0,
       droppedEvents: 0,
       failedFlushes: 0,
-      stopped: false
+      stopped: false,
+      seq: 0,
+      awayMs: 0,
+      hiddenAt: 0,
+      flags: {},
+      resumed: false
+    }
+
+    /* Resume the same session after a page change or reload (same tab, same attempt). */
+    var storeKey = config.persist ? 'tinyproctor:' + config.attemptId : ''
+    var saved = storeKey ? storeGet(storeKey) : null
+    if (saved && saved.sessionId) {
+      config.sessionId = state.sessionId = saved.sessionId
+      state.startedAt = saved.startedAt || state.startedAt
+      state.violationCounts = saved.counts || {}
+      state.seq = saved.seq || 0
+      state.queue = saved.queue || []
+      state.awayMs = saved.awayMs || 0
+      state.flags = saved.flags || {}
+      state.resumed = true
+      state.gapMs = saved.at ? Math.max(0, Date.now() - saved.at) : 0
+    }
+
+    var cleared = false
+    function save() {
+      if (!storeKey || cleared) return
+      storeSet(storeKey, {
+        sessionId: state.sessionId,
+        startedAt: state.startedAt,
+        counts: state.violationCounts,
+        seq: state.seq,
+        queue: state.queue,
+        awayMs: state.awayMs,
+        flags: state.flags,
+        at: Date.now()
+      })
     }
 
     var badgeEl = null
@@ -310,9 +358,11 @@
 
     function buildEventPayload(eventType, eventData, violationKey, clientTime) {
       var score = computeScore(config.weights, state.violationCounts)
+      state.seq += 1
       var payload = {
         schemaVersion: 1,
         clientVersion: VERSION,
+        seq: state.seq,
         sessionId: config.sessionId,
         examId: config.examId,
         attemptId: config.attemptId,
@@ -341,6 +391,8 @@
         state.queue.shift()
         state.droppedEvents += 1
       }
+      save()
+      armDeferred()
       scheduleFlush(false)
     }
 
@@ -372,6 +424,8 @@
           bodyText: 'payload=' + encodeURIComponent(jsonText)
         }
       }
+      /* text/plain is CORS-safelisted: no preflight for cross-origin collectors */
+      if (config.payloadFormat === 'text') return { contentType: 'text/plain;charset=UTF-8', bodyText: jsonText }
       return { contentType: 'application/json', bodyText: jsonText }
     }
 
@@ -444,6 +498,11 @@
       if (flushInFlight && !preferBeacon) return
       var batch = state.queue.splice(0, config.batchMax)
       var payload = batchEnvelope(batch)
+      /* keepalive/beacon bodies share a 64 KiB budget: keep each batch under batchBytes */
+      while (batch.length > 1 && JSON.stringify(payload).length > config.batchBytes) {
+        state.queue.unshift(batch.pop())
+        payload.events = batch
+      }
       flushInFlight = true
       sendJsonOnce(payload, preferBeacon)
         .then(function (res) {
@@ -452,6 +511,8 @@
             state.sentEvents += batch.length
             state.lastFlushAt = Date.now()
             state.failedFlushes = 0
+            save()
+            armDeferred()
             if (state.queue.length) scheduleFlush(false)
             return
           }
@@ -461,22 +522,56 @@
             state.droppedEvents += state.queue.length - config.queueMax
             state.queue.length = config.queueMax
           }
+          save()
           scheduleFlush(false)
         })
         .catch(function () {
           flushInFlight = false
           state.failedFlushes += 1
           state.queue = batch.concat(state.queue)
+          save()
           scheduleFlush(false)
         })
+    }
+
+    /* fetchLater(): the browser sends the pending batch even if the tab is killed
+       before pagehide runs. Re-armed on every change, disarmed once sent. */
+    var deferred = null
+    function disarmDeferred() {
+      if (!deferred) return
+      try {
+        deferred.abort()
+      } catch (e) {
+      }
+      deferred = null
+    }
+
+    function armDeferred() {
+      disarmDeferred()
+      if (!config.endpoint || state.stopped || !state.queue.length || typeof window.fetchLater !== 'function') return
+      try {
+        var enc = encodeBody(batchEnvelope(state.queue.slice(0, config.batchMax)))
+        deferred = new AbortController()
+        window.fetchLater(config.endpoint, {
+          method: 'POST',
+          credentials: config.credentials,
+          headers: { 'Content-Type': enc.contentType },
+          body: enc.bodyText,
+          signal: deferred.signal
+        })
+      } catch (e) {
+        deferred = null
+      }
     }
 
     /* ---------------- DevTools heuristics ---------------- */
 
     var lastDevtoolsResizeAt = 0
     var devtoolsResizeActive = false
-    function devtoolsResizeCheck() {
+    function devtoolsResizeCheck(atStart) {
       if (!config.devtools) return
+      /* at start: once per session, desktop only (mobile toolbars and keyboards skew the sizes) */
+      if (atStart === true && (state.flags.devtools_resize || (window.matchMedia && window.matchMedia('(pointer: coarse)').matches))) return
       var dw = Math.abs((window.outerWidth || 0) - (window.innerWidth || 0))
       var dh = Math.abs((window.outerHeight || 0) - (window.innerHeight || 0))
       var threshold = config.devtoolsResizeThreshold
@@ -490,11 +585,12 @@
         devtoolsResizeActive = true
         lastDevtoolsResizeAt = now
         state.devtoolsSuspected = true
-        pushViolation('devtools_resize', 'devtools', { signal: 'resize', dw: dw, dh: dh, threshold: threshold }, true)
+        state.flags.devtools_resize = 1
+        pushViolation('devtools_resize', 'devtools', { signal: atStart === true ? 'start' : 'resize', dw: dw, dh: dh, threshold: threshold }, true)
       }
     }
 
-    var onResize = throttle(devtoolsResizeCheck, config.resizeThrottleMs)
+    var onResize = throttle(function () { devtoolsResizeCheck(false) }, config.resizeThrottleMs)
 
     var lastDevtoolsKeyAt = 0
 
@@ -622,29 +718,125 @@
 
     /* ---------------- Core event handlers ---------------- */
 
+    /* Away time: one period runs from the first hide/blur until the page is visible AND focused again. */
+    function awayStart() {
+      if (!state.awaySince) state.awaySince = Date.now()
+    }
+
+    function awayEnd() {
+      if (!state.awaySince || document.hidden || !document.hasFocus()) return 0
+      var d = Date.now() - state.awaySince
+      state.awaySince = 0
+      state.awayMs += d
+      return d
+    }
+
+    var blurTimer = null
+    function recordBlur(deduped) {
+      blurTimer = null
+      if (deduped) pushViolation(null, 'focus', { focused: false, deduped: true }, false)
+      else pushViolation('window_blur', 'focus', { focused: false }, true)
+      flush(true)
+    }
+
     function onVisibilityChange() {
       var vs = document.visibilityState || (document.hidden ? 'hidden' : 'visible')
       state.visibilityState = vs
       if (document.hidden || vs === 'hidden') {
+        /* hidden because the page is unloading (next quiz page, reload): not a tab switch.
+           The server sees how long the candidate was gone via the next page's session gapMs. */
+        if (state.unloading) {
+          pushViolation(null, 'visibility', { visibilityState: vs, unload: true }, false)
+          return flush(true)
+        }
+        state.hiddenAt = Date.now()
+        awayStart()
+        if (blurTimer) {
+          clearTimeout(blurTimer)
+          recordBlur(true)
+        }
         pushViolation('tab_hidden', 'visibility', { visibilityState: vs }, true)
         flush(true)
       } else {
-        pushViolation(null, 'visibility', { visibilityState: vs }, false)
+        pushViolation(null, 'visibility', { visibilityState: vs, awayMs: awayEnd() }, false)
         scheduleFlush(false)
       }
     }
 
-    function onBlur() {
+    /* Capture-phase window listeners also receive every element's blur/focus:
+       only the window itself losing focus counts. */
+    function onBlur(ev) {
+      if (ev && ev.target && ev.target !== window) return
       state.isFocused = false
-      pushViolation('window_blur', 'focus', { focused: false }, true)
-      flush(true)
+      awayStart()
+      var grace = config.blurDedupeMs
+      if (!grace) return recordBlur(false)
+      if (Date.now() - state.hiddenAt < grace) return recordBlur(true)
+      if (!blurTimer) blurTimer = setTimeout(function () { recordBlur(false) }, grace)
     }
 
-    function onFocus() {
+    function onFocus(ev) {
+      if (ev && ev.target && ev.target !== window) return
       state.isFocused = true
       markActivity()
-      pushViolation(null, 'focus', { focused: true }, false)
+      pushViolation(null, 'focus', { focused: true, awayMs: awayEnd() }, false)
       scheduleFlush(false)
+    }
+
+    /* Second screen: Window Management API boolean, no permission prompt (Chromium). */
+    function onScreenChange() {
+      if (!config.screens || !window.screen || !('isExtended' in window.screen)) return
+      var ext = !!window.screen.isExtended
+      if (ext && !state.flags.multi_screen) {
+        state.flags.multi_screen = 1
+        pushViolation('multi_screen', 'screen', { isExtended: true }, true)
+      } else if (!ext && state.flags.multi_screen) {
+        state.flags.multi_screen = 0
+        pushViolation(null, 'screen', { isExtended: false }, false)
+      }
+    }
+
+    /* WebDriver-controlled browsers must set navigator.webdriver. Easy to spoof, so false proves nothing. */
+    function checkAutomation() {
+      if (!config.automation || state.flags.automation_flag) return
+      if (typeof navigator !== 'undefined' && navigator.webdriver === true) {
+        state.flags.automation_flag = 1
+        pushViolation('automation_flag', 'automation', { webdriver: true }, true)
+      }
+    }
+
+    function tagOf(t) {
+      return t && t.tagName ? String(t.tagName).toLowerCase() : ''
+    }
+
+    /* Text dragged and dropped into the page bypasses paste events. File drops are ignored. */
+    function onDrop(ev) {
+      if (!config.clipboard || !ev) return
+      var types = ev.dataTransfer && ev.dataTransfer.types ? Array.prototype.slice.call(ev.dataTransfer.types) : []
+      if (types.indexOf('Files') !== -1) return
+      if (config.blockClipboard && typeof ev.preventDefault === 'function') {
+        try { ev.preventDefault() } catch (e) {}
+      }
+      pushViolation('drop_attempt', 'clipboard', { action: 'drop', targetTag: tagOf(ev.target), blocked: !!config.blockClipboard }, true)
+      flush(false)
+    }
+
+    /* A large block of text inserted in one go (agent browsers, auto-typers, text expanders).
+       Records the length only, never the text. */
+    var lastInsertAt = 0
+    function onBeforeInput(ev) {
+      if (!config.insert || !ev) return
+      var type = ev.inputType || ''
+      if (type !== 'insertText' && type !== 'insertReplacementText') return
+      var n = typeof ev.data === 'string' ? ev.data.length : 0
+      if (!n && ev.dataTransfer) {
+        try { n = ev.dataTransfer.getData('text/plain').length } catch (e) {}
+      }
+      var now = Date.now()
+      if (n < config.insertChars || now - lastInsertAt < 1000) return
+      lastInsertAt = now
+      pushViolation('insert_burst', 'input', { inputType: type, chars: n, targetTag: tagOf(ev.target) }, true)
+      flush(false)
     }
 
     function onFullscreenChange() {
@@ -682,11 +874,13 @@
     }
 
     function onPagehide() {
+      state.unloading = true
+      save()
       flush(true)
     }
 
-    function onBeforeunload() {
-      flush(true)
+    function onPageshow(ev) {
+      if (ev && ev.persisted) state.unloading = false
     }
 
     function bind() {
@@ -707,7 +901,10 @@
       document.addEventListener('scroll', onActivity, true)
       document.addEventListener('touchstart', onActivity, true)
       window.addEventListener('pagehide', onPagehide, true)
-      window.addEventListener('beforeunload', onBeforeunload, true)
+      window.addEventListener('pageshow', onPageshow, true)
+      document.addEventListener('drop', onDrop, true)
+      document.addEventListener('beforeinput', onBeforeInput, true)
+      if (window.screen && window.screen.addEventListener) window.screen.addEventListener('change', onScreenChange)
     }
 
     function unbind() {
@@ -728,15 +925,25 @@
       document.removeEventListener('scroll', onActivity, true)
       document.removeEventListener('touchstart', onActivity, true)
       window.removeEventListener('pagehide', onPagehide, true)
-      window.removeEventListener('beforeunload', onBeforeunload, true)
+      window.removeEventListener('pageshow', onPageshow, true)
+      document.removeEventListener('drop', onDrop, true)
+      document.removeEventListener('beforeinput', onBeforeInput, true)
+      if (window.screen && window.screen.removeEventListener) window.screen.removeEventListener('change', onScreenChange)
     }
 
+    var startCheckTimer = null
     function start() {
       state.stopped = false
       bind()
+      enqueueEvent('session', { resumed: state.resumed, persisted: !!storeKey, gapMs: state.gapMs || 0 }, null)
       startHeartbeat()
       startIdleWatch()
       ensureBadge()
+      onScreenChange()
+      checkAutomation()
+      startCheckTimer = setTimeout(function () {
+        if (!state.stopped) devtoolsResizeCheck(true)
+      }, 1000)
       scheduleFlush(false)
     }
 
@@ -744,7 +951,11 @@
       stopHeartbeat()
       stopIdleWatch()
       unbind()
+      clearTimeout(startCheckTimer)
+      clearTimeout(blurTimer)
+      save()
       flush(true)
+      disarmDeferred()
       state.stopped = true
       if (flushTimer) {
         clearTimeout(flushTimer)
@@ -779,7 +990,11 @@
         sentEvents: state.sentEvents,
         droppedEvents: state.droppedEvents,
         queuedEvents: state.queue.length,
-        failedFlushes: state.failedFlushes
+        failedFlushes: state.failedFlushes,
+        seq: state.seq,
+        awayMs: state.awayMs,
+        resumed: state.resumed,
+        flags: shallowCopy(state.flags)
       }
     }
 
@@ -800,7 +1015,11 @@
       },
       requestFullscreen: requestFullscreen,
       exitFullscreen: exitFullscreen,
-      markViolation: markCustomViolation
+      markViolation: markCustomViolation,
+      clearSession: function () {
+        cleared = true
+        if (storeKey) storeSet(storeKey, null)
+      }
     }
   }
 
@@ -817,6 +1036,7 @@
   function normalizePayloadFormat(v) {
     var s = String(v || '').trim().toLowerCase()
     if (s === 'form' || s === 'x-www-form-urlencoded' || s === 'urlencoded') return 'form'
+    if (s === 'text' || s === 'text/plain' || s === 'plain') return 'text'
     return 'json'
   }
 
@@ -835,12 +1055,18 @@
     var cfg = raw && typeof raw === 'object' ? shallowCopy(raw) : {}
     cfg.endpoint = normalizeUrl(cfg.endpoint)
     cfg.examId = cfg.examId != null ? String(cfg.examId) : ''
-    cfg.attemptId = cfg.attemptId != null && cfg.attemptId !== '' ? String(cfg.attemptId) : createId('attempt')
+    var hasAttempt = cfg.attemptId != null && cfg.attemptId !== ''
+    cfg.attemptId = hasAttempt ? String(cfg.attemptId) : createId('attempt')
+    /* resume only works for a real attempt id: an auto id changes on every page */
+    cfg.persist = hasAttempt && parseBool(cfg.persist, true)
     cfg.candidateLabel = cfg.candidateLabel != null ? String(cfg.candidateLabel) : ''
     cfg.sessionId = cfg.sessionId != null && cfg.sessionId !== '' ? String(cfg.sessionId) : createId('tp')
     cfg.heartbeatMs = clamp(toInt(cfg.heartbeatMs, 30000), 5000, 10 * 60 * 1000)
     cfg.flushMs = clamp(toInt(cfg.flushMs, 900), 150, 5000)
     cfg.batchMax = clamp(toInt(cfg.batchMax, 20), 1, 100)
+    cfg.batchBytes = clamp(toInt(cfg.batchBytes, 48 * 1024), 4096, 60 * 1024)
+    cfg.blurDedupeMs = clamp(toInt(cfg.blurDedupeMs, 0), 0, 5000)
+    cfg.insertChars = clamp(toInt(cfg.insertChars, 40), 5, 100000)
     cfg.queueMax = clamp(toInt(cfg.queueMax, 250), 50, 5000)
     cfg.resizeThrottleMs = clamp(toInt(cfg.resizeThrottleMs, 500), 100, 3000)
     cfg.devtoolsResizeThreshold = clamp(toInt(cfg.devtoolsResizeThreshold, 160), 60, 600)
@@ -854,6 +1080,9 @@
     cfg.blockContextmenu = parseBool(cfg.blockContextmenu, false)
     cfg.print = parseBool(cfg.print, true)
     cfg.idle = parseBool(cfg.idle, true)
+    cfg.screens = parseBool(cfg.screens, true)
+    cfg.automation = parseBool(cfg.automation, true)
+    cfg.insert = parseBool(cfg.insert, true)
     cfg.credentials = normalizeCredentials(cfg.credentials)
     cfg.payloadFormat = normalizePayloadFormat(cfg.payloadFormat)
     cfg.weights = mergeWeights(cfg.weights)
@@ -878,6 +1107,13 @@
       print: pickFirst(ds, ['print', 'printDetect', 'printdetect']),
       idle: pickFirst(ds, ['idle', 'idleDetect', 'idledetect']),
       idleMs: pickFirst(ds, ['idleMs', 'idlems']),
+      screens: ds.screens,
+      automation: ds.automation,
+      insert: ds.insert,
+      insertChars: ds.insertChars,
+      blurDedupeMs: ds.blurDedupeMs,
+      persist: ds.persist,
+      batchBytes: ds.batchBytes,
       heartbeatMs: pickFirst(ds, ['heartbeatMs', 'heartbeatms', 'heartbeat']),
       flushMs: pickFirst(ds, ['flushMs', 'flushms']),
       batchMax: pickFirst(ds, ['batchMax', 'batchmax']),
@@ -917,10 +1153,12 @@
     return instance
   }
 
-  TinyProctor.destroy = function destroy() {
+  /* destroy(true) also forgets the saved session, e.g. after the exam is submitted */
+  TinyProctor.destroy = function destroy(clearSession) {
     if (!instance) return
     try {
       instance.stop()
+      if (clearSession) instance.clearSession()
     } catch (e) {
     }
     instance = null
@@ -932,6 +1170,8 @@
   function autoInit() {
     if (instance) return
     var s = getCurrentScript()
+    /* bundled or imported without a script tag: wait for an explicit init(config) */
+    if (!s) return
     var cfg = buildConfigFromScript(s)
     if (cfg && cfg.autoinit === false) return
     instance = createClient(cfg)
@@ -941,4 +1181,6 @@
   autoInit()
 
   window.TinyProctor = TinyProctor
+  /* CommonJS bundlers: require('tinyproctor') returns the API (no auto-start without a script tag) */
+  if (typeof module === 'object' && module && module.exports) module.exports = TinyProctor
 })(window, document)
