@@ -200,6 +200,11 @@ def site_footer(prefix, scripts=""):
     return f"""
     <footer class="site-footer">
         <div class="wrap">
+            <a class="donate" href="{COFFEE}" target="_blank" rel="noopener">
+                <span class="donate-cup" aria-hidden="true">☕</span>
+                <span class="donate-text"><strong>Tanzir Rahman</strong> is fueling open-source code, local utilities, and late-night builds.</span>
+                <span class="donate-btn">Buy me a coffee</span>
+            </a>
             <div class="footer-grid">
                 <div class="footer-about">
                     <a class="brand" href="{prefix}index.html" aria-label="tinyproctor.js home">{BRAND}</a>
@@ -262,7 +267,6 @@ def closer(prefix, title, text, primary=("Try the live demo", "demo/exam.html"),
                 <div class="cta-row">
                     <a class="btn solid" href="{prefix}{primary[1]}">{primary[0]}</a>
                     <a class="btn" href="{prefix}{secondary[1]}">{secondary[0]}</a>
-                    <a class="btn" href="{COFFEE}" target="_blank" rel="noopener"><span aria-hidden="true">☕</span>Support this project</a>
                 </div>
             </div>
         </section>"""
