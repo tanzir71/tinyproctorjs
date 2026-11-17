@@ -1,0 +1,59 @@
+{
+  "name": "tinyproctor",
+  "version": "1.1.0",
+  "description": "Minimal, self-hosted, dependency-free browser integrity monitoring for online exams.",
+  "license": "MIT",
+  "author": "Tanzir (https://tanziro.com)",
+  "homepage": "https://tanzir71.github.io/tinyproctorjs/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tanzir71/tinyproctorjs.git"
+  },
+  "bugs": "https://github.com/tanzir71/tinyproctorjs/issues",
+  "keywords": [
+    "proctoring",
+    "exam",
+    "integrity",
+    "online-exam",
+    "tab-switch",
+    "lms",
+    "moodle",
+    "self-hosted",
+    "privacy"
+  ],
+  "main": "tinyproctor.js",
+  "module": "tinyproctor.mjs",
+  "types": "tinyproctor.d.ts",
+  "exports": {
+    ".": {
+      "types": "./tinyproctor.d.ts",
+      "import": "./tinyproctor.mjs",
+      "require": "./tinyproctor.js"
+    },
+    "./min": "./tinyproctor.min.js",
+    "./llms.txt": "./llms.txt"
+  },
+  "files": [
+    "tinyproctor.js",
+    "tinyproctor.min.js",
+    "tinyproctor.mjs",
+    "tinyproctor.d.ts",
+    "llms.txt",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "sideEffects": true,
+  "scripts": {
+    "test": "node test/run-tests.mjs",
+    "build": "node scripts/build.mjs",
+    "size": "node scripts/build.mjs --check",
+    "serve": "node demo/server.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^26.0.0",
+    "terser": "^5.31.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

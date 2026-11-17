@@ -142,7 +142,7 @@ STYLE = """
             .menu-toggle { display: block; }
             .menu-toggle:focus-visible { outline: 2px solid var(--focus, #2540ff); outline-offset: 2px; }
             header nav { display: none; position: absolute; left: 16px; right: 16px; top: calc(100% + 1px); z-index: 50; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; margin: 0; padding: 8px; overflow: visible; border: 1px solid var(--border); background: var(--bg); box-shadow: 0 18px 36px rgba(10, 10, 10, 0.14); }
-            .site-menu[open] nav { display: flex; }
+            .site-menu[open] + nav { display: flex; }
             header .nav-link, header .btn { width: 100%; height: 42px; justify-content: flex-start; padding: 0 12px; }
             header .btn-primary { justify-content: center; }
             main, .layout > *, .grid > *, .demo-grid > *, .hero-grid > *, .paths > * { min-width: 0; }
@@ -216,7 +216,7 @@ def render(v):
     <meta property="og:description" content="{v["desc"]}">
     <meta property="og:type" content="article">
     <meta property="og:url" content="{BASE}/{v["slug"]}.html">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20100%27%3E%3Ctext%20y%3D%27.9em%27%20font-size%3D%2790%27%3E%F0%9F%91%81%EF%B8%8F%3C%2Ftext%3E%3C%2Fsvg%3E">
+    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
     <script type="application/ld+json">
 {faq_jsonld(v["faq"])}
     </script>
@@ -226,7 +226,7 @@ def render(v):
     <header>
         <div class="container header-inner">
             <a class="brand" href="./index.html">
-                <div class="logo"><span>TP</span></div>
+                <svg class="logo-mark" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="display:block;flex:none;margin:0 -4px 0 -5px"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg>
                 <span class="brand-name">tinyproctor.js</span>
             </a>
             <details class="site-menu">
@@ -235,6 +235,7 @@ def render(v):
                     <span></span>
                     <span></span>
                 </summary>
+            </details>
                 <nav aria-label="Primary navigation">
                     <a class="nav-link" href="./index.html#features">Features</a>
                     <a class="nav-link" href="./docs.html">Docs</a>
@@ -242,7 +243,6 @@ def render(v):
                     <a class="nav-link" href="./demo/exam.html">Demo</a>
                     <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
                 </nav>
-            </details>
         </div>
     </header>
 
