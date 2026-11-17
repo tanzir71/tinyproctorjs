@@ -6,309 +6,127 @@
     <title>Online Proctoring Software Comparison 2026 — tinyproctor.js vs Proctorio, Honorlock, Respondus, SEB</title>
     <meta name="description" content="Honest comparison of exam proctoring approaches in 2026: tinyproctor.js vs Proctorio, Honorlock, Respondus LockDown Browser, and Safe Exam Browser — signals, privacy, pricing models, and bypass resistance.">
     <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#ffffff">
     <link rel="canonical" href="https://tanzir71.github.io/tinyproctorjs/compare.html">
     <meta property="og:title" content="Online Proctoring Software Comparison 2026">
     <meta property="og:description" content="tinyproctor.js vs Proctorio, Honorlock, Respondus LockDown Browser, and Safe Exam Browser — an honest comparison.">
     <meta property="og:type" content="article">
     <meta property="og:url" content="https://tanzir71.github.io/tinyproctorjs/compare.html">
+    <meta name="twitter:card" content="summary">
     <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+    <link rel="preload" href="./assets/fonts/InstrumentSans-Bold.woff" as="font" type="font/woff" crossorigin>
+    <link rel="stylesheet" href="./assets/site.css">
     <style>
-        :root {
-            --bg: #f4f3ee; --fg: #0a0a0a; --muted: #6b6b66; --muted-2: #8a877e;
-            --border: #cfcdc4; --panel: #fbfaf6; --hover: #ebe9e1; --focus: #2540ff;
+        .page-hero h1 { max-width: 26ch; }
+        .matrix .cmp { min-width: 1080px; }
+        .matrix .cmp thead th { white-space: normal; }
+        .matrix .cmp thead th:nth-child(n+3) { width: 16%; }
+        .matrix .cmp th[scope="row"] { width: 15%; }
+        .matrix .cmp .us { width: 21%; }
+        @media (max-width: 720px) { .page-hero h1 { font-size: 32px; } }
+        @media (max-width: 860px) {
+            /* Keep the row labels in view while the matrix scrolls sideways. */
+            .matrix .cmp th[scope="row"], .matrix .cmp thead th:first-child { position: sticky; left: 0; z-index: 1; background: var(--paper); box-shadow: 1px 0 0 var(--rule); }
+            .matrix .cmp thead th:first-child { background: var(--mist); }
+            .matrix .cmp { min-width: 900px; }
+            .matrix .cmp th[scope="row"] { width: 130px; }
         }
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body { margin: 0; background: var(--bg); color: var(--fg); font-family: "Inter", "Inter Tight", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif; line-height: 1.5; }
-        a { color: inherit; text-decoration: none; }
-        a:hover { color: var(--fg); }
-        .container { margin: 0 auto; max-width: 1152px; padding: 0 16px; }
-        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border-width: 0; }
-        .skip:focus { position: fixed; left: 16px; top: 16px; z-index: 9999; width: auto; height: auto; margin: 0; overflow: visible; clip: auto; white-space: normal; border: 1px solid var(--border); background: var(--bg); padding: 8px 12px; border-radius: 0; font-size: 14px; }
-        header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border); background: rgba(244, 243, 238, 0.9); backdrop-filter: blur(10px); }
-        .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 12px; padding-bottom: 12px; }
-        .brand { display: inline-flex; align-items: center; gap: 12px; }
-        .logo { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 0; border: 1px solid var(--border); background: var(--bg); }
-        .logo span { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
-        .brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
-        nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; font-size: 14px; }
-        .nav-link { display: inline-flex; height: 36px; align-items: center; border-radius: 0; padding: 0 8px; color: var(--muted); transition: background-color 120ms ease, color 120ms ease; }
-        .nav-link:hover { background: var(--hover); color: var(--fg); }
-        .nav-link[aria-current="page"] { background: var(--hover); color: var(--fg); }
-        .btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 16px; border-radius: 0; border: 1px solid var(--border); background: var(--bg); color: var(--fg); font-size: 14px; font-weight: 500; transition: background-color 120ms ease; }
-        .btn:hover { background: var(--hover); }
-        .btn-primary { background: var(--fg); border-color: var(--fg); color: #fff; }
-        .btn-primary:hover { background: #2540ff; }
-        .mono { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; }
-        .hero-inner { padding-top: 72px; padding-bottom: 48px; }
-        .pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 0; border: 1px solid var(--border); background: var(--bg); padding: 6px 12px; font-size: 12px; color: var(--muted); }
-        h1 { margin: 10px 0 0; font-size: 34px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.12; text-wrap: balance; }
-        @media (min-width: 640px) { h1 { font-size: 44px; } }
-        .lead { margin-top: 14px; max-width: 720px; font-size: 16px; line-height: 1.75; color: var(--muted); text-wrap: pretty; }
-        .section { padding-top: 32px; padding-bottom: 48px; }
-        .section-head { margin-bottom: 24px; }
-        h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
-        @media (min-width: 640px) { h2 { font-size: 24px; } }
-        .sub { margin-top: 8px; font-size: 14px; color: var(--muted); }
-        @media (min-width: 640px) { .sub { font-size: 16px; } }
-        .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-        @media (min-width: 640px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
-        @media (min-width: 1024px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
-        .card { border-radius: 0; border: 1px solid var(--border); background: var(--panel); padding: 16px; transition: border-color 120ms ease; }
-        .card:hover { border-color: #2540ff; }
-        h3 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
-        .card p { margin: 8px 0 0; font-size: 14px; line-height: 1.65; color: var(--muted); }
-        .card .link { display: inline-block; margin-top: 12px; font-size: 13px; font-weight: 600; color: var(--fg); text-decoration: underline; text-underline-offset: 4px; }
-        ul { margin: 10px 0 0 18px; padding: 0; color: var(--muted); font-size: 14px; }
-        li { margin: 6px 0; }
-        code { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 0.95em; }
-        .table { border-radius: 0; border: 1px solid var(--border); background: var(--panel); overflow: hidden; }
-        .table-wrap { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; min-width: 980px; }
-        thead th { text-align: left; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-2); font-weight: 700; padding: 12px 14px; border-bottom: 1px solid var(--border); background: var(--hover); }
-        thead th:nth-child(2) { color: var(--fg); }
-        tbody td { padding: 12px 14px; vertical-align: top; border-top: 1px solid var(--border); color: var(--muted); font-size: 14px; line-height: 1.55; }
-        tbody td strong { color: var(--fg); font-weight: 600; }
-        tbody td:nth-child(2) { background: var(--hover); }
-        .note { margin-top: 12px; font-size: 13px; color: var(--muted); }
-        .bmc { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px; border-radius: 0; border: 1px solid var(--fg); background: transparent; color: var(--fg); font-size: 14px; font-weight: 600; }
-        .bmc:hover { background: var(--fg); color: var(--bg); }
-        .cta-row { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-        footer { border-top: 1px solid var(--border); padding: 40px 0; }
-        .footer-inner { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; }
-        @media (min-width: 640px) { .footer-inner { flex-direction: row; align-items: center; } }
-        .footer-note { font-size: 12px; color: var(--muted-2); }
-        .footer-links { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; }
-        .footer-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 4px; }
-        /* unified site header */
-        header { background: rgba(244, 243, 238, 0.92); }
-        header .brand { display: inline-flex; align-items: center; gap: 12px; }
-        header .logo { display: grid; place-items: center; width: 34px; height: 34px; border: 0; background: var(--fg); }
-        header .logo span { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 11px; color: var(--bg); letter-spacing: 0.05em; }
-        header nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; font-size: 14px; }
-        header .nav-link { display: inline-flex; height: 36px; align-items: center; padding: 0 10px; color: var(--muted); transition: background-color 120ms ease, color 120ms ease; }
-        header .nav-link:hover { background: var(--hover, var(--bg-alt)); color: var(--fg); }
-        header .nav-link[aria-current="page"] { background: transparent; color: var(--muted); }
-        header .btn { height: 40px; padding: 0 18px; border: 1px solid var(--fg); background: transparent; color: var(--fg); font-size: 14px; font-weight: 550; font-family: inherit; transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease; }
-        header .btn:hover { background: var(--fg); color: var(--bg); }
-        header .btn-primary { background: var(--fg); border-color: var(--fg); color: var(--bg); }
-        header .btn-primary:hover { background: #2540ff; border-color: #2540ff; color: #fff; }
-        /* mobile site menu */
-        .site-menu { display: flex; align-items: center; margin-left: auto; }
-        .menu-toggle { display: none; position: relative; width: 36px; height: 36px; border: 1px solid var(--fg); background: transparent; color: var(--fg); cursor: pointer; }
-        .menu-toggle::-webkit-details-marker { display: none; }
-        .menu-toggle span { position: absolute; left: 8px; right: 8px; height: 2px; background: currentColor; }
-        .menu-toggle span:nth-child(1) { top: 10px; }
-        .menu-toggle span:nth-child(2) { top: 17px; }
-        .menu-toggle span:nth-child(3) { top: 24px; }
-        @media (max-width: 639px) {
-            .header-inner { position: relative; min-height: 58px; align-items: center; flex-direction: row; gap: 12px; }
-            header .brand { min-width: 0; }
-            header .brand-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            .site-menu { flex: none; margin-left: auto; }
-            .menu-toggle { display: block; }
-            .menu-toggle:focus-visible { outline: 2px solid var(--focus, #2540ff); outline-offset: 2px; }
-            header nav { display: none; position: absolute; left: 16px; right: 16px; top: calc(100% + 1px); z-index: 50; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; margin: 0; padding: 8px; overflow: visible; border: 1px solid var(--border); background: var(--bg); box-shadow: 0 18px 36px rgba(10, 10, 10, 0.14); }
-            .site-menu[open] + nav { display: flex; }
-            header .nav-link, header .btn { width: 100%; height: 42px; justify-content: flex-start; padding: 0 12px; }
-            header .btn-primary { justify-content: center; }
-            main, .layout > *, .grid > *, .demo-grid > *, .hero-grid > *, .paths > * { min-width: 0; }
-            pre, .snippet, .table-wrap { max-width: 100%; }
-        }
-        /* end mobile site menu */
     </style>
 </head>
 <body>
     <a href="#content" class="sr-only skip">Skip to content</a>
-    <header>
-        <div class="container header-inner">
-            <a class="brand" href="./index.html">
-                <svg class="logo-mark" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="display:block;flex:none;margin:0 -4px 0 -5px"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg>
-                <span class="brand-name">tinyproctor.js</span>
-            </a>
+
+    <header class="site-header">
+        <div class="wrap header-inner">
+            <a class="brand" href="./index.html" aria-label="tinyproctor.js home"><svg class="logo" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg><span class="brand-name">tinyproctor<span class="tld">.js</span></span></a>
             <details class="site-menu">
-
-                <summary class="menu-toggle" aria-label="Open navigation">
-
-                    <span></span>
-
-                    <span></span>
-
-                    <span></span>
-
-                </summary>
-
+                <summary class="menu-toggle" aria-label="Open navigation" aria-controls="primary-nav"><span></span><span></span><span></span></summary>
             </details>
-
-                <nav aria-label="Primary navigation">
+            <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation">
+                <a class="nav-link" href="./index.html#whats-new">What's new</a>
                 <a class="nav-link" href="./index.html#features">Features</a>
                 <a class="nav-link" href="./index.html#setup">Setup</a>
                 <a class="nav-link" href="./docs.html">Docs</a>
                 <a class="nav-link" href="./compare.html" aria-current="page">Compare</a>
                 <a class="nav-link" href="./demo/exam.html">Demo</a>
-                <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
-                </nav>
+                <a class="btn btn-sm" href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
+            </nav>
         </div>
     </header>
+
     <main id="content">
-        <section class="hero">
-            <div class="container hero-inner">
-                <div style="max-width: 860px;">
-                    <p class="pill">
-                        <span class="mono">comparison · 2026</span>
-                        <span>signals • enforcement • privacy • pricing</span>
-                    </p>
-                    <h1>How tinyproctor.js compares to Proctorio, Honorlock, Respondus &amp; Safe Exam Browser</h1>
-                    <p class="lead">
-                        An honest comparison of online exam proctoring approaches. Different tools optimize for
-                        different threat models — deterrence, detection, or prevention — and no client-side signal
-                        is proof of cheating on its own.
-                    </p>
-                </div>
+        <section class="page-hero">
+            <div class="wrap">
+                <span class="crumb"><b>2026</b>Signals, enforcement, privacy, pricing</span>
+                <h1>How tinyproctor.js compares to Proctorio, Honorlock, Respondus &amp; Safe Exam Browser</h1>
+                <p class="lead">
+                    An honest comparison of online exam proctoring approaches. Different tools optimize for
+                    different threat models — deterrence, detection, or prevention — and no client-side signal
+                    is proof of cheating on its own.
+                </p>
             </div>
         </section>
 
-        <section class="section">
-            <div class="container">
+        <section class="section matrix">
+            <div class="wrap">
                 <div class="section-head">
                     <h2>Comparison matrix</h2>
                     <p class="sub">Reflects publicly documented behavior and typical configurations as of June 2026. Verify specifics with each vendor.</p>
                 </div>
-                <div class="table">
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Dimension</th>
-                                    <th>tinyproctor.js</th>
-                                    <th>Proctorio</th>
-                                    <th>Honorlock</th>
-                                    <th>Respondus LockDown Browser</th>
-                                    <th>Safe Exam Browser</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td><strong>Approach</strong></td>
-                                    <td>Detect &amp; report browser integrity signals</td>
-                                    <td>Automated AI proctoring with recording</td>
-                                    <td>AI + live human proctoring</td>
-                                    <td>Lockdown (prevention) via custom browser</td>
-                                    <td>Lockdown (prevention) via kiosk app</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Student installs</strong></td>
-                                    <td><strong>None</strong> — any modern browser</td>
-                                    <td>Browser extension</td>
-                                    <td>Browser extension</td>
-                                    <td>Custom browser app</td>
-                                    <td>Desktop/iOS app + config</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Webcam / mic / screen recording</strong></td>
-                                    <td><strong>Never</strong></td>
-                                    <td>Yes (configurable)</td>
-                                    <td>Yes (webcam + screen)</td>
-                                    <td>Optional via Respondus Monitor</td>
-                                    <td>No (camera possible via exam system)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Where data lives</strong></td>
-                                    <td><strong>Your server only</strong></td>
-                                    <td>Vendor cloud</td>
-                                    <td>Vendor cloud</td>
-                                    <td>Vendor cloud (Monitor)</td>
-                                    <td>Your LMS / exam system</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Pricing model</strong></td>
-                                    <td><strong>Free</strong> — MIT license</td>
-                                    <td>Institutional quote</td>
-                                    <td>Per student / per session</td>
-                                    <td>Annual institutional license</td>
-                                    <td>Free — open source (MPL)</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Works on mobile</strong></td>
-                                    <td>Yes (core signals)</td>
-                                    <td>No (desktop browsers)</td>
-                                    <td>No (desktop browsers)</td>
-                                    <td>iPad app only</td>
-                                    <td>iOS app, no Android</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Bypass resistance</strong></td>
-                                    <td>Low–medium: deters casual misuse, not bypass-proof</td>
-                                    <td>Medium–high with recording review</td>
-                                    <td>Medium–high with live proctors</td>
-                                    <td>High for in-browser actions</td>
-                                    <td>High on managed devices</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Setup effort</strong></td>
-                                    <td><strong>Minutes</strong> — script tag + endpoint</td>
-                                    <td>Procurement + LMS integration</td>
-                                    <td>Procurement + LMS integration</td>
-                                    <td>License + campus rollout</td>
-                                    <td>Config files + device rollout</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Best for</strong></td>
-                                    <td>Low/medium-stakes quizzes &amp; assessments, custom platforms, privacy-sensitive cohorts</td>
-                                    <td>High-stakes exams needing recorded evidence</td>
-                                    <td>High-stakes exams needing live intervention</td>
-                                    <td>Campus-wide LMS exams on student installs</td>
-                                    <td>Managed devices &amp; computer labs</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="table-scroll" role="region" aria-label="Comparison matrix" tabindex="0">
+                    <table class="cmp">
+                        <thead>
+                            <tr>
+                                <th scope="col">Dimension</th>
+                                <th scope="col" class="us">tinyproctor.js</th>
+                                <th scope="col">Proctorio</th>
+                                <th scope="col">Honorlock</th>
+                                <th scope="col">Respondus LockDown Browser</th>
+                                <th scope="col">Safe Exam Browser</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><th scope="row">Approach</th><td class="us">Detect &amp; report browser integrity signals</td><td>Automated AI proctoring with recording</td><td>AI + live human proctoring</td><td>Lockdown (prevention) via custom browser</td><td>Lockdown (prevention) via kiosk app</td></tr>
+                            <tr><th scope="row">Student installs</th><td class="us"><strong>None</strong> — any modern browser</td><td>Browser extension</td><td>Browser extension</td><td>Custom browser app</td><td>Desktop/iOS app + config</td></tr>
+                            <tr><th scope="row">Webcam / mic / screen recording</th><td class="us"><strong>Never</strong></td><td>Yes (configurable)</td><td>Yes (webcam + screen)</td><td>Optional via Respondus Monitor</td><td>No (camera possible via exam system)</td></tr>
+                            <tr><th scope="row">Where data lives</th><td class="us"><strong>Your server only</strong></td><td>Vendor cloud</td><td>Vendor cloud</td><td>Vendor cloud (Monitor)</td><td>Your LMS / exam system</td></tr>
+                            <tr><th scope="row">Pricing model</th><td class="us"><strong>Free</strong> — MIT license</td><td>Institutional quote</td><td>Per student / per session</td><td>Annual institutional license</td><td>Free — open source (MPL)</td></tr>
+                            <tr><th scope="row">Works on mobile</th><td class="us">Yes (core signals)</td><td>No (desktop browsers)</td><td>No (desktop browsers)</td><td>iPad app only</td><td>iOS app, no Android</td></tr>
+                            <tr><th scope="row">Bypass resistance</th><td class="us">Low–medium: deters casual misuse, not bypass-proof</td><td>Medium–high with recording review</td><td>Medium–high with live proctors</td><td>High for in-browser actions</td><td>High on managed devices</td></tr>
+                            <tr><th scope="row">Setup effort</th><td class="us"><strong>Minutes</strong> — script tag + endpoint</td><td>Procurement + LMS integration</td><td>Procurement + LMS integration</td><td>License + campus rollout</td><td>Config files + device rollout</td></tr>
+                            <tr><th scope="row">Best for</th><td class="us">Low/medium-stakes quizzes &amp; assessments, custom platforms, privacy-sensitive cohorts</td><td>High-stakes exams needing recorded evidence</td><td>High-stakes exams needing live intervention</td><td>Campus-wide LMS exams on student installs</td><td>Managed devices &amp; computer labs</td></tr>
+                        </tbody>
+                    </table>
                 </div>
                 <p class="note">Treat client-side "devtools detected" style events as heuristics. Use layered controls and human review for academic-integrity decisions.</p>
             </div>
         </section>
 
-        <section class="section">
-            <div class="container">
+        <section class="section tint">
+            <div class="wrap">
                 <div class="section-head">
                     <h2>Detailed head-to-head comparisons</h2>
                     <p class="sub">Deep dives into each alternative, with honest guidance on which to pick.</p>
                 </div>
-                <div class="grid grid-2 grid-4">
-                    <div class="card">
-                        <h3>vs Proctorio</h3>
-                        <p>No webcam, no extension, no vendor cloud — what you give up and what you gain.</p>
-                        <a class="link" href="./proctorio-alternative.html">Read the comparison →</a>
-                    </div>
-                    <div class="card">
-                        <h3>vs Honorlock</h3>
-                        <p>Per-session pricing vs free and self-hosted — when each model makes sense.</p>
-                        <a class="link" href="./honorlock-alternative.html">Read the comparison →</a>
-                    </div>
-                    <div class="card">
-                        <h3>vs Respondus LockDown</h3>
-                        <p>Detection vs prevention, and why zero-install matters on exam day.</p>
-                        <a class="link" href="./respondus-lockdown-browser-alternative.html">Read the comparison →</a>
-                    </div>
-                    <div class="card">
-                        <h3>vs Safe Exam Browser</h3>
-                        <p>Two open-source tools that solve opposite halves of the problem — and combine well.</p>
-                        <a class="link" href="./safe-exam-browser-alternative.html">Read the comparison →</a>
-                    </div>
+                <div class="vs">
+                    <a href="./proctorio-alternative.html"><h3>vs Proctorio</h3><p>No webcam, no extension, no vendor cloud — what you give up and what you gain.</p><span>Read the comparison</span></a>
+                    <a href="./honorlock-alternative.html"><h3>vs Honorlock</h3><p>Per-session pricing vs free and self-hosted — when each model makes sense.</p><span>Read the comparison</span></a>
+                    <a href="./respondus-lockdown-browser-alternative.html"><h3>vs Respondus LockDown</h3><p>Detection vs prevention, and why zero-install matters on exam day.</p><span>Read the comparison</span></a>
+                    <a href="./safe-exam-browser-alternative.html"><h3>vs Safe Exam Browser</h3><p>Two open-source tools that solve opposite halves of the problem — and combine well.</p><span>Read the comparison</span></a>
                 </div>
             </div>
         </section>
 
         <section class="section">
-            <div class="container">
+            <div class="wrap">
                 <div class="section-head">
                     <h2>What tinyproctor.js is designed for</h2>
                     <p class="sub">Pick the right tool for your threat model.</p>
                 </div>
-                <div class="grid grid-2">
-                    <div class="card">
+                <div class="duo">
+                    <div class="card accent">
                         <h3>Best for</h3>
-                        <ul>
+                        <ul class="bullets">
                             <li>Low-friction integrity signals for custom quiz/exam systems and LMS quizzes.</li>
                             <li>Heartbeat-based session tracking and configurable integrity scoring.</li>
                             <li>Self-hosted environments with strict privacy requirements (GDPR/FERPA).</li>
@@ -317,29 +135,69 @@
                     </div>
                     <div class="card">
                         <h3>Not a replacement for</h3>
-                        <ul>
+                        <ul class="bullets neutral">
                             <li>Secure browsers or OS-level enforcement for high-stakes certification.</li>
                             <li>Identity verification and recorded-evidence proctoring.</li>
                             <li>Proof of cheating based on a single client-side event.</li>
                         </ul>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <section class="support">
+            <div class="wrap support-inner">
+                <div>
+                    <h2>See it work in 30 seconds</h2>
+                    <p>Open the live demo, switch tabs or paste some text, and watch the integrity score react. It runs in your browser and nothing is uploaded.</p>
+                </div>
                 <div class="cta-row">
-                    <a class="btn btn-primary" href="./demo/exam.html">Try the live demo</a>
+                    <a class="btn solid" href="./demo/exam.html">Try the live demo</a>
                     <a class="btn" href="./docs.html">Implementation docs</a>
-                    <a class="bmc" href="https://buymeacoffee.com/tanzir" rel="noopener" target="_blank" rel="noopener">[ ☕ support this project ]</a>
+                    <a class="btn" href="https://buymeacoffee.com/tanzir" target="_blank" rel="noopener"><span aria-hidden="true">☕</span>Support this project</a>
                 </div>
             </div>
         </section>
     </main>
-    <footer>
-        <div class="container footer-inner">
-            <div class="footer-note">tinyproctor.js — free &amp; open source. Built by <a href="https://tanziro.com" style="text-decoration:underline;" target="_blank" rel="noopener">tanziro.com</a> · <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;" target="_blank" rel="noopener">Buy me a coffee</a></div>
-            <div class="footer-links">
-                <a href="./index.html">Home</a>
-                <a href="./docs.html">Docs</a>
-                <a href="./demo/exam.html">Demo</a>
-                <a href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <a class="brand" href="./index.html" aria-label="tinyproctor.js home"><svg class="logo" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg><span class="brand-name">tinyproctor<span class="tld">.js</span></span></a>
+                    <p>Minimal, self-hosted, dependency-free browser integrity monitoring for online exams.</p>
+                </div>
+                <div>
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="./docs.html">Docs</a></li>
+                        <li><a href="./demo/exam.html">Live demo</a></li>
+                        <li><a href="./compare.html">Compare</a></li>
+                        <li><a href="./llms.txt">llms.txt</a></li>
+                        <li><a href="https://github.com/tanzir71/tinyproctorjs/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Alternatives</h4>
+                    <ul>
+                        <li><a href="./proctorio-alternative.html">vs Proctorio</a></li>
+                        <li><a href="./honorlock-alternative.html">vs Honorlock</a></li>
+                        <li><a href="./respondus-lockdown-browser-alternative.html">vs Respondus</a></li>
+                        <li><a href="./safe-exam-browser-alternative.html">vs Safe Exam Browser</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Project</h4>
+                    <ul>
+                        <li><a href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a></li>
+                        <li><a href="https://buymeacoffee.com/tanzir" target="_blank" rel="noopener">Buy me a coffee</a></li>
+                        <li><a href="https://tanziro.com" target="_blank" rel="noopener">tanziro.com</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-base">
+                <span>tinyproctor.js — built by <a href="https://tanziro.com" target="_blank" rel="noopener">tanziro.com</a></span>
+                <span>MIT licensed. Free for commercial use.</span>
             </div>
         </div>
     </footer>

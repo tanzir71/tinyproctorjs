@@ -6,533 +6,584 @@
     <title>Live Demo — tinyproctor.js Browser Exam Integrity Monitoring</title>
     <meta name="description" content="Interactive demo of tinyproctor.js: switch tabs, copy text, or open DevTools and watch the integrity score react in real time. No signup, runs entirely in your browser.">
     <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#ffffff">
     <link rel="canonical" href="https://tanzir71.github.io/tinyproctorjs/demo/exam.html">
     <meta property="og:title" content="Live Demo — tinyproctor.js">
     <meta property="og:description" content="Watch browser exam integrity monitoring react in real time. Runs entirely in your browser.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://tanzir71.github.io/tinyproctorjs/demo/exam.html">
+    <meta name="twitter:card" content="summary">
     <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+    <link rel="preload" href="../assets/fonts/InstrumentSans-Bold.woff" as="font" type="font/woff" crossorigin>
+    <link rel="stylesheet" href="../assets/site.css">
     <style>
-        :root {
-            --bg: #f4f3ee;
-            --fg: #0a0a0a;
-            --muted: #6b6b66;
-            --muted-2: #8a877e;
-            --border: #cfcdc4;
-            --panel: #fbfaf6;
-            --hover: #ebe9e1;
-            --focus: #2540ff;
-            --green: #0e8f66;
-            --green-bg: #e2f4ec;
-            --amber: #b97309;
-            --amber-bg: #f4ecd8;
-            --red: #e04a12;
-            --red-bg: #f9e4da;
-        }
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body {
-            margin: 0;
-            background: var(--bg);
-            color: var(--fg);
-            font-family: "Inter", "Inter Tight", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-            line-height: 1.5;
-        }
-        a { color: inherit; text-decoration: none; }
-        .container { margin: 0 auto; max-width: 1152px; padding-left: 16px; padding-right: 16px; }
-        header {
-            position: sticky;
-            top: 0;
-            z-index: 40;
-            border-bottom: 1px solid var(--border);
-            background: rgba(244, 243, 238, 0.9);
-            backdrop-filter: blur(10px);
-        }
-        .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 12px; padding-bottom: 12px; }
-        .brand { display: inline-flex; align-items: center; gap: 12px; }
-        .logo {
-            display: grid; place-items: center; width: 36px; height: 36px;
-            border-radius: 0; border: 1px solid var(--border); background: var(--bg);
-        }
-        .logo span { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
-        .brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
-        nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; font-size: 14px; }
-        .nav-link {
-            display: inline-flex; height: 36px; align-items: center; border-radius: 0;
-            padding: 0 8px; color: var(--muted); transition: background-color 120ms ease, color 120ms ease;
-        }
-        .nav-link:hover { background: var(--hover); color: var(--fg); }
-        .nav-link[aria-current="page"] { background: var(--hover); color: var(--fg); }
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center; height: 40px;
-            padding: 0 14px; border-radius: 0; border: 1px solid var(--border);
-            background: var(--bg); color: var(--fg); font-size: 14px; font-weight: 500;
-            cursor: pointer; transition: background-color 120ms ease, border-color 120ms ease;
-            font-family: inherit;
-        }
-        .btn:hover { background: var(--hover); }
-        .btn-primary { background: var(--fg); border-color: var(--fg); color: #fff; }
-        .btn-primary:hover { background: #2540ff; }
-        .btn-sm { height: 32px; padding: 0 10px; font-size: 13px; border-radius: 0; }
-        .mono { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; }
-        .pill {
-            display: inline-flex; align-items: center; gap: 8px; border-radius: 0;
-            border: 1px solid var(--border); background: var(--bg); padding: 6px 12px;
-            font-size: 12px; color: var(--muted);
-        }
-        h1 { margin: 10px 0 0; font-size: 32px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
-        @media (min-width: 640px) { h1 { font-size: 40px; } }
-        .lead { margin-top: 12px; max-width: 640px; font-size: 16px; line-height: 1.7; color: var(--muted); }
-        .hero-inner { padding-top: 48px; padding-bottom: 32px; }
-        .section { padding-top: 24px; padding-bottom: 48px; }
-        h2 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.02em; }
-        h3 { margin: 0; font-size: 14px; font-weight: 600; }
-        .sub { margin-top: 6px; font-size: 14px; color: var(--muted); }
-        .card {
-            border-radius: 0; border: 1px solid var(--border); background: var(--panel); padding: 20px;
-        }
-        .demo-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
-        @media (min-width: 960px) { .demo-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: start; } }
+        .demo-hero { padding: 56px 0 48px; }
+        .demo-hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 64px; align-items: end; }
+        .demo-hero h1 { max-width: 16ch; }
+        .progress { padding: 22px 24px; border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper); }
+        .progress-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+        .progress-num { font-size: 40px; font-weight: 700; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+        .progress-num small { font-size: 18px; color: var(--slate-2); letter-spacing: 0; }
+        .progress-label { font-size: 14px; color: var(--slate); }
+        .bar { height: 6px; margin-top: 14px; border-radius: 6px; background: var(--mist-2); overflow: hidden; }
+        .bar span { display: block; width: 0; height: 100%; border-radius: 6px; background: var(--blue); transition: width 260ms ease; }
+        .progress p { margin-top: 12px; font-size: 14px; line-height: 1.5; color: var(--slate); }
 
-        /* Score panel */
-        .score-wrap { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-        .gauge { position: relative; width: 120px; height: 120px; flex: none; }
-        .gauge svg { transform: rotate(-90deg); }
-        .gauge .track { stroke: var(--border); }
-        .gauge .bar { stroke: var(--green); transition: stroke-dashoffset 400ms ease, stroke 400ms ease; }
-        .gauge-num {
-            position: absolute; inset: 0; display: grid; place-items: center;
-            font-size: 30px; font-weight: 650; letter-spacing: -0.03em;
-        }
-        .score-meta { display: flex; flex-direction: column; gap: 8px; min-width: 200px; flex: 1; }
-        .score-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-2); font-weight: 700; }
-        .score-status {
-            display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
-            border-radius: 0; padding: 4px 12px; font-size: 13px; font-weight: 600;
-            background: var(--green-bg); color: var(--green);
-        }
-        .score-status::before { content: ""; width: 8px; height: 8px; border-radius: 0; background: currentColor; }
-        .score-counts { font-size: 13px; color: var(--muted); }
+        .demo-layout { display: grid; grid-template-columns: minmax(0, 1fr) 440px; gap: 40px; align-items: start; padding: 48px 32px 96px; }
+        .demo-main { display: grid; gap: 24px; min-width: 0; }
 
-        /* Violation chips */
-        .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-        .chip {
-            display: inline-flex; align-items: center; gap: 6px; border-radius: 0;
-            border: 1px solid var(--border); padding: 5px 10px; font-size: 12px; color: var(--muted);
-            font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-        }
-        .chip b { font-weight: 700; color: var(--fg); }
-        .chip.hit { border-color: rgba(220, 38, 38, 0.4); background: var(--red-bg); color: var(--red); }
-        .chip.hit b { color: var(--red); }
+        /* exam paper */
+        .paper { border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper); overflow: hidden; }
+        .paper-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; padding: 12px 24px; border-bottom: 1px solid var(--rule); background: var(--mist); font-size: 13.5px; color: var(--slate); }
+        .paper-head code { font-size: 12.5px; color: var(--ink); }
+        .paper-body { padding: 28px 28px 32px; }
+        .paper h2, .checklist-card h2 { font-size: 26px; letter-spacing: -0.02em; }
+        .paper-intro { margin-top: 8px; font-size: 16px; color: var(--slate); }
+        .q { margin: 28px 0 0; padding: 0; border: 0; }
+        .q legend, .q .q-title { display: block; padding: 0; margin-bottom: 12px; font-size: 17px; font-weight: 700; line-height: 1.4; }
+        .q-num { display: inline-grid; place-items: center; width: 26px; height: 26px; margin-right: 8px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 13px; vertical-align: 1px; }
+        .opts { display: grid; gap: 8px; }
+        .opt { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1px solid var(--rule); border-radius: var(--r-md); font-size: 15.5px; cursor: pointer; transition: border-color 140ms ease, background-color 140ms ease; }
+        .opt:hover { border-color: var(--slate-2); }
+        .opt:has(input:checked) { border-color: var(--blue); background: var(--blue-wash); }
+        .opt input { width: 18px; height: 18px; margin: 0; accent-color: var(--blue); }
+        .opt code { font-size: 14px; }
+        textarea { display: block; width: 100%; min-height: 120px; padding: 12px 14px; border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--paper); color: var(--ink); font: 400 15.5px/1.6 var(--f-sans); resize: vertical; }
+        textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37, 64, 255, 0.15); }
+        .answer-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; margin-top: 10px; font-size: 14px; color: var(--slate); }
+        .copy-me { margin-top: 18px; padding: 14px 16px; border: 1.5px dashed #c4cad4; border-radius: var(--r-md); background: var(--mist); font-size: 15px; line-height: 1.6; color: var(--ink); cursor: grab; }
+        .copy-me code { font-size: 13.5px; }
 
-        /* Checklist */
-        .checklist { display: flex; flex-direction: column; gap: 0; margin-top: 4px; }
-        .check-item {
-            display: flex; align-items: flex-start; gap: 12px; padding: 12px 4px;
-            border-bottom: 1px solid var(--border); font-size: 14px;
-        }
-        .check-item:last-child { border-bottom: none; }
-        .check-box {
-            flex: none; width: 20px; height: 20px; border-radius: 0; margin-top: 1px;
-            border: 1.5px solid var(--border); display: grid; place-items: center;
-            font-size: 12px; color: #fff; transition: all 200ms ease;
-        }
-        .check-item.done .check-box { background: var(--green); border-color: var(--green); }
-        .check-item.done .check-title { color: var(--muted-2); text-decoration: line-through; }
-        .check-title { font-weight: 550; }
-        .check-hint { color: var(--muted); font-size: 13px; margin-top: 1px; }
-        .check-key { color: var(--muted-2); font-size: 11px; }
+        /* checklist */
+        .checklist-card { padding: 28px; border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper); }
+        .checklist-head { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+        .checklist-head p { margin-top: 8px; font-size: 16px; color: var(--slate); }
+        .checklist { list-style: none; margin: 20px 0 0; padding: 0; border-top: 1px solid var(--rule); }
+        .check { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto; gap: 14px; align-items: start; padding: 16px 0; border-bottom: 1px solid var(--rule); transition: background-color 400ms ease; }
+        .check-box { display: grid; place-items: center; width: 24px; height: 24px; margin-top: 1px; border: 2px solid #c4cad4; border-radius: 50%; color: transparent; transition: background-color 200ms ease, border-color 200ms ease; }
+        .check-box svg { width: 12px; height: 12px; }
+        .check.done .check-box { background: var(--blue); border-color: var(--blue); color: #fff; }
+        .check.flash { background: var(--blue-wash); }
+        .check-title { font-weight: 700; font-size: 16px; line-height: 1.4; }
+        .check-hint { margin-top: 3px; font-size: 14.5px; line-height: 1.5; color: var(--slate); }
+        .check-hint code { font-size: 13px; color: var(--ink); background: var(--mist); padding: 1px 5px; border-radius: 4px; }
+        .check .key { align-self: start; }
+        .check .key .n { margin-left: -2px; color: var(--slate-2); font-size: 12px; }
+        .check.done .key .n { color: var(--blue-ink); }
+        .checklist-note { margin-top: 16px; font-size: 14px; color: var(--slate); }
 
-        /* Exam sim */
-        .exam-q { margin-top: 16px; }
-        .exam-q + .exam-q { margin-top: 20px; }
-        .q-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; }
-        .opt {
-            display: flex; align-items: center; gap: 10px; padding: 10px 12px; margin-top: 6px;
-            border: 1px solid var(--border); border-radius: 0; font-size: 14px; cursor: pointer;
-            transition: border-color 120ms ease, background-color 120ms ease;
-        }
-        .opt:hover { background: var(--hover); }
-        .opt input { accent-color: var(--fg); }
-        textarea {
-            width: 100%; min-height: 88px; margin-top: 6px; padding: 10px 12px;
-            border: 1px solid var(--border); border-radius: 0; font: inherit; font-size: 14px;
-            resize: vertical; color: var(--fg); background: var(--bg);
-        }
-        textarea:focus { outline: 2px solid var(--fg); outline-offset: -1px; }
-        .copy-me {
-            margin-top: 8px; padding: 10px 12px; border: 1px dashed var(--border); border-radius: 0;
-            font-size: 13px; color: var(--muted); background: var(--hover);
-        }
+        /* proctor console */
+        .console { position: sticky; top: 88px; display: flex; flex-direction: column; max-height: calc(100vh - 104px); border-radius: var(--r-lg); background: var(--navy); color: var(--navy-ink); box-shadow: 0 30px 60px -30px rgba(13, 20, 38, 0.55); overflow: hidden; }
+        .console-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 18px; border-bottom: 1px solid var(--navy-rule); }
+        .console-title { display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 700; }
+        .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 0 4px rgba(79, 216, 160, 0.18); }
+        .console-id { font-size: 13px; color: var(--navy-mute); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .score-block { padding: 20px 18px 18px; border-bottom: 1px solid var(--navy-rule); }
+        .score-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+        .score-num { font-size: 64px; font-weight: 700; line-height: 0.9; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; color: var(--ok); transition: color 260ms ease; }
+        .score-cap { display: block; margin-top: 8px; font-size: 13.5px; color: var(--navy-mute); }
+        .status { display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border-radius: 999px; background: rgba(79, 216, 160, 0.14); color: var(--ok); font-size: 13.5px; font-weight: 700; white-space: nowrap; }
+        .status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+        .meter { height: 5px; margin-top: 16px; border-radius: 5px; background: var(--navy-rule); overflow: hidden; }
+        .meter span { display: block; height: 100%; width: 100%; border-radius: 5px; background: var(--ok); transition: width 260ms ease, background-color 260ms ease; }
+        .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 16px 0 0; }
+        .stats div + div { padding-left: 14px; border-left: 1px solid var(--navy-rule); }
+        .stats dt { font-size: 20px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+        .stats dd { margin: 3px 0 0; font-size: 12.5px; color: var(--navy-mute); }
+        .breakdown { padding: 14px 18px; border-bottom: 1px solid var(--navy-rule); }
+        .breakdown h3, .log-head h3 { font-size: 13.5px; font-weight: 700; color: var(--navy-mute); }
+        .breakdown-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+        .breakdown-head span { font: 400 12.5px/1 var(--f-mono); color: var(--navy-ink); }
+        .breakdown ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 4px; max-height: 128px; overflow-y: auto; }
+        .breakdown li { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; font: 400 12.5px/1.6 var(--f-mono); }
+        .breakdown li .m { color: var(--navy-mute); }
+        .breakdown li .s { min-width: 36px; text-align: right; color: var(--flag); }
+        .breakdown .none { display: block; font: 400 13.5px/1.5 var(--f-sans); color: var(--navy-mute); }
+        .console-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; padding: 14px 18px; border-bottom: 1px solid var(--navy-rule); }
+        .cbtn { height: 34px; padding: 0 10px; border-radius: var(--r-sm); border: 1px solid var(--navy-rule); background: transparent; color: var(--navy-ink); font: 700 13px/1 var(--f-sans); cursor: pointer; transition: background-color 140ms ease, border-color 140ms ease; }
+        .cbtn:hover { background: var(--navy-2); border-color: var(--navy-mute); }
+        .log-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px 8px; }
+        .log-head .cbtn { height: 26px; font-size: 12px; }
+        .log { flex: 1 1 auto; min-height: 140px; overflow-y: auto; list-style: none; margin: 0; padding: 0 18px 12px; }
+        .log li { display: grid; grid-template-columns: 64px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; padding: 7px 0; border-top: 1px solid var(--navy-rule); font-size: 13.5px; }
+        .log time { font: 400 12px/1 var(--f-mono); color: var(--navy-mute); font-variant-numeric: tabular-nums; }
+        .log .ev { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .log .ev code { margin-left: 6px; font-size: 12px; color: var(--navy-mute); }
+        .log .d { font: 400 12.5px/1 var(--f-mono); color: var(--navy-mute); }
+        .log .is-flag .d { color: var(--flag); }
+        .log .is-new { animation: flash 900ms ease-out; }
+        @keyframes flash { from { background: rgba(37, 64, 255, 0.28); } to { background: transparent; } }
+        .log .empty { display: block; padding: 10px 0; border: 0; color: var(--navy-mute); font-size: 13.5px; }
 
-        /* Event log */
-        .log-card { padding: 0; overflow: hidden; }
-        .log-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--border); }
-        .log {
-            max-height: 360px; overflow-y: auto; font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-            font-size: 12px; line-height: 1.5;
-        }
-        .log-row { display: flex; gap: 10px; padding: 7px 16px; border-bottom: 1px solid var(--hover); align-items: baseline; }
-        .log-row:first-child { background: var(--hover); }
-        .log-time { color: var(--muted-2); flex: none; }
-        .log-type { flex: none; min-width: 88px; font-weight: 600; }
-        .log-type.violation { color: var(--red); }
-        .log-type.info { color: var(--muted); }
-        .log-detail { color: var(--muted); word-break: break-word; }
-        .log-empty { padding: 24px 16px; color: var(--muted-2); font-size: 13px; font-family: inherit; }
+        /* one script tag */
+        .tag-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 560px); gap: 64px; align-items: center; }
+        .tag-layout .codeblock { margin: 0; }
 
-        .controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-        .note { margin-top: 12px; font-size: 13px; color: var(--muted-2); }
-        .snippet {
-            margin-top: 12px; background: #0c0d0e; color: #f4f3ee; border-radius: 0;
-            padding: 16px; font-size: 13px; line-height: 1.6; overflow-x: auto;
-            font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+        /* mobile score dock */
+        .dock { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 30; display: none; align-items: center; gap: 12px; padding: 10px 12px 10px 16px; border-radius: var(--r-md); background: var(--navy); color: var(--navy-ink); box-shadow: 0 16px 40px -12px rgba(13, 20, 38, 0.6); transform: translateY(140%); transition: transform 200ms ease; }
+        .dock.show { transform: none; }
+        .dock b { font-size: 24px; line-height: 1; font-variant-numeric: tabular-nums; color: var(--ok); }
+        .dock span { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; color: var(--navy-mute); }
+        .dock a { flex: none; height: 32px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: var(--r-sm); border: 1px solid var(--navy-rule); color: var(--navy-ink); font-size: 13px; font-weight: 700; text-decoration: none; }
+
+        @media (max-width: 1100px) {
+            .demo-layout { grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; }
+            .tag-layout { grid-template-columns: minmax(0, 1fr); gap: 32px; }
         }
-        .snippet .c { color: #76776f; }
-        .snippet .a { color: #8fa3ff; }
-        .snippet .v { color: #c8d0ff; }
-        footer { border-top: 1px solid var(--border); padding: 40px 0; }
-        .footer-inner { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; }
-        @media (min-width: 640px) { .footer-inner { flex-direction: row; align-items: center; } }
-        .footer-note { font-size: 12px; color: var(--muted-2); }
-        .footer-links { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; }
-        .footer-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 4px; }
-        .footer-links a:hover { color: var(--fg); }
-        .bmc {
-            display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px;
-            border-radius: 0; border: 1px solid var(--fg); background: transparent; color: var(--fg);
-            font-size: 14px; font-weight: 600; transition: background-color 120ms ease;
+        @media (max-width: 1000px) {
+            .demo-hero-grid { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+            .progress { max-width: 480px; }
+            .demo-layout { grid-template-columns: minmax(0, 1fr); padding-top: 28px; }
+            .console { position: static; max-height: none; order: -1; }
+            .log { max-height: 260px; }
+            .dock { display: flex; }
         }
-        .bmc:hover { background: var(--fg); color: var(--bg); }
-        /* unified site header */
-        header { background: rgba(244, 243, 238, 0.92); }
-        header .brand { display: inline-flex; align-items: center; gap: 12px; }
-        header .logo { display: grid; place-items: center; width: 34px; height: 34px; border: 0; background: var(--fg); }
-        header .logo span { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 11px; color: var(--bg); letter-spacing: 0.05em; }
-        header nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; font-size: 14px; }
-        header .nav-link { display: inline-flex; height: 36px; align-items: center; padding: 0 10px; color: var(--muted); transition: background-color 120ms ease, color 120ms ease; }
-        header .nav-link:hover { background: var(--hover, var(--bg-alt)); color: var(--fg); }
-        header .nav-link[aria-current="page"] { background: transparent; color: var(--muted); }
-        header .btn { height: 40px; padding: 0 18px; border: 1px solid var(--fg); background: transparent; color: var(--fg); font-size: 14px; font-weight: 550; font-family: inherit; transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease; }
-        header .btn:hover { background: var(--fg); color: var(--bg); }
-        header .btn-primary { background: var(--fg); border-color: var(--fg); color: var(--bg); }
-        header .btn-primary:hover { background: #2540ff; border-color: #2540ff; color: #fff; }
-        /* mobile site menu */
-        .site-menu { display: flex; align-items: center; margin-left: auto; }
-        .menu-toggle { display: none; position: relative; width: 36px; height: 36px; border: 1px solid var(--fg); background: transparent; color: var(--fg); cursor: pointer; }
-        .menu-toggle::-webkit-details-marker { display: none; }
-        .menu-toggle span { position: absolute; left: 8px; right: 8px; height: 2px; background: currentColor; }
-        .menu-toggle span:nth-child(1) { top: 10px; }
-        .menu-toggle span:nth-child(2) { top: 17px; }
-        .menu-toggle span:nth-child(3) { top: 24px; }
-        @media (max-width: 639px) {
-            .header-inner { position: relative; min-height: 58px; align-items: center; flex-direction: row; gap: 12px; }
-            header .brand { min-width: 0; }
-            header .brand-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            .site-menu { flex: none; margin-left: auto; }
-            .menu-toggle { display: block; }
-            .menu-toggle:focus-visible { outline: 2px solid var(--focus, #2540ff); outline-offset: 2px; }
-            header nav { display: none; position: absolute; left: 16px; right: 16px; top: calc(100% + 1px); z-index: 50; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; margin: 0; padding: 8px; overflow: visible; border: 1px solid var(--border); background: var(--bg); box-shadow: 0 18px 36px rgba(10, 10, 10, 0.14); }
-            .site-menu[open] + nav { display: flex; }
-            header .nav-link, header .btn { width: 100%; height: 42px; justify-content: flex-start; padding: 0 12px; }
-            header .btn-primary { justify-content: center; }
-            main, .layout > *, .grid > *, .demo-grid > *, .hero-grid > *, .paths > * { min-width: 0; }
-            pre, .snippet, .table-wrap { max-width: 100%; }
+        @media (max-width: 720px) {
+            .demo-hero { padding: 40px 0 32px; }
+            .demo-layout { padding: 20px 20px 96px; }
+            .paper-body, .checklist-card { padding: 22px 20px 24px; }
+            .paper-head { padding: 10px 20px; }
+            .check { grid-template-columns: 28px minmax(0, 1fr); }
+            .check .key { grid-column: 2; justify-self: start; }
+            .score-num { font-size: 56px; }
         }
-        /* end mobile site menu */
     </style>
 </head>
 <body>
-    <header>
-        <div class="container header-inner">
-            <a class="brand" href="../index.html">
-                <svg class="logo-mark" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="display:block;flex:none;margin:0 -4px 0 -5px"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg>
-                <span class="brand-name">tinyproctor.js</span>
-            </a>
+    <a href="#content" class="sr-only skip">Skip to content</a>
+
+    <header class="site-header">
+        <div class="wrap header-inner">
+            <a class="brand" href="../index.html" aria-label="tinyproctor.js home"><svg class="logo" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg><span class="brand-name">tinyproctor<span class="tld">.js</span></span></a>
             <details class="site-menu">
-
-                <summary class="menu-toggle" aria-label="Open navigation">
-
-                    <span></span>
-
-                    <span></span>
-
-                    <span></span>
-
-                </summary>
-
+                <summary class="menu-toggle" aria-label="Open navigation" aria-controls="primary-nav"><span></span><span></span><span></span></summary>
             </details>
-
-                <nav aria-label="Primary navigation">
+            <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation">
+                <a class="nav-link" href="../index.html#whats-new">What's new</a>
                 <a class="nav-link" href="../index.html#features">Features</a>
                 <a class="nav-link" href="../index.html#setup">Setup</a>
                 <a class="nav-link" href="../docs.html">Docs</a>
                 <a class="nav-link" href="../compare.html">Compare</a>
-                <a class="nav-link" href="./exam.html" aria-current="page">Demo</a>
-                <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
-                </nav>
+                <a class="nav-link" href="../demo/exam.html" aria-current="page">Demo</a>
+                <a class="btn btn-sm" href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
+            </nav>
         </div>
     </header>
 
-    <main>
-        <section class="container hero-inner">
-            <p class="pill"><span class="mono">live demo</span><span>runs 100% in your browser — nothing is uploaded</span></p>
-            <h1>Try to "cheat" on this page.</h1>
-            <p class="lead">
-                This page is monitored by <span class="mono">tinyproctor.js</span> exactly as a real exam would be.
-                Work through the checklist — every action is detected, scored, and logged in real time.
-            </p>
+    <main id="content">
+        <section class="page-hero demo-hero">
+            <div class="wrap demo-hero-grid">
+                <div>
+                    <span class="crumb"><b>Live demo</b>Runs 100% in your browser. Nothing is uploaded.</span>
+                    <h1>Try to “cheat” on this page.</h1>
+                    <p class="lead">
+                        This page is monitored by <code>tinyproctor.js</code> exactly as a real exam would be.
+                        Work through the checklist — every action is detected, scored, and logged in real time.
+                    </p>
+                </div>
+                <div class="progress" aria-live="polite">
+                    <div class="progress-top">
+                        <span class="progress-num"><span id="caughtNum">0</span><small> / <span id="caughtTotal">13</span></small></span>
+                        <span class="progress-label">ways caught so far</span>
+                    </div>
+                    <div class="bar" aria-hidden="true"><span id="caughtBar"></span></div>
+                    <p>Start with the quick ones: switch tabs, copy a sentence, right-click.</p>
+                </div>
+            </div>
         </section>
 
-        <section class="container section">
-            <div class="demo-grid">
-                <!-- LEFT COLUMN -->
-                <div style="display:flex;flex-direction:column;gap:16px;">
-                    <!-- Score -->
-                    <div class="card">
-                        <div class="score-wrap">
-                            <div class="gauge" aria-hidden="true">
-                                <svg width="120" height="120" viewBox="0 0 120 120">
-                                    <circle class="track" cx="60" cy="60" r="52" fill="none" stroke-width="10"></circle>
-                                    <circle class="bar" id="gaugeBar" cx="60" cy="60" r="52" fill="none" stroke-width="10"
-                                        stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0"></circle>
-                                </svg>
-                                <div class="gauge-num" id="scoreNum">100</div>
+        <div class="wrap demo-layout">
+            <div class="demo-main">
+                <section class="paper" aria-labelledby="paper-title">
+                    <div class="paper-head">
+                        <span>Exam <code>DEMO_EXAM</code> · 2 questions</span>
+                        <span>Attempt <code id="attemptId">DEMO_…</code></span>
+                    </div>
+                    <div class="paper-body">
+                        <h2 id="paper-title">Sample exam question</h2>
+                        <p class="paper-intro">Interact like a real candidate — try copying the question or pasting an answer.</p>
+
+                        <fieldset class="q">
+                            <legend><span class="q-num">1</span>Which browser API delivers events reliably even when a page is closing?</legend>
+                            <div class="opts">
+                                <label class="opt"><input type="radio" name="q1" value="a"> <code>localStorage</code></label>
+                                <label class="opt"><input type="radio" name="q1" value="b"> <code>navigator.sendBeacon()</code></label>
+                                <label class="opt"><input type="radio" name="q1" value="c"> <code>XMLHttpRequest</code> (sync)</label>
                             </div>
-                            <div class="score-meta">
-                                <span class="score-label">Integrity score</span>
-                                <span class="score-status" id="scoreStatus">Clean session</span>
-                                <span class="score-counts"><b id="violationCount">0</b> violations · <span id="eventCount">0</span> events captured</span>
+                        </fieldset>
+
+                        <div class="q">
+                            <label class="q-title" for="answer"><span class="q-num">2</span>Short answer — paste something here to trigger <code>paste_attempt</code>:</label>
+                            <textarea id="answer" placeholder="Type or paste your answer…"></textarea>
+                            <div class="answer-tools">
+                                <span>An AI agent fills a box in one go. See what that looks like:</span>
+                                <button class="btn btn-sm" id="btnAgent" type="button">Simulate an AI agent answer</button>
                             </div>
-                        </div>
-                        <div class="chips" id="chips"></div>
-                        <div class="controls">
-                            <button class="btn btn-sm" id="btnFs">Enter fullscreen</button>
-                            <button class="btn btn-sm" id="btnExitFs">Exit fullscreen</button>
-                            <button class="btn btn-sm" id="btnCustom">Flag custom violation</button>
-                            <button class="btn btn-sm" id="btnReset">Reset demo</button>
+                            <p class="copy-me" draggable="true">Try selecting and copying this sentence to trigger a <code>copy_attempt</code> violation, or drag it into the box above for a <code>drop_attempt</code>.</p>
                         </div>
                     </div>
+                </section>
 
-                    <!-- Checklist -->
-                    <div class="card">
-                        <h2>Detection checklist</h2>
-                        <p class="sub">Each item checks itself off the first time the signal fires.</p>
-                        <div class="checklist" id="checklist"></div>
-                        <p class="note">Tip: the idle timer is set to 15 seconds for this demo (default in production is 60s).</p>
+                <section class="checklist-card" id="checklist-section" aria-labelledby="checklist-title">
+                    <div class="checklist-head">
+                        <div>
+                            <h2 id="checklist-title">Detection checklist</h2>
+                            <p>Each item checks itself off the first time the signal fires.</p>
+                        </div>
                     </div>
+                    <ol class="checklist" id="checklist"></ol>
+                    <p class="checklist-note">Tip: the idle timer is set to 15 seconds for this demo (default in production is 60s).</p>
+                </section>
+            </div>
 
-                    <!-- Simulated exam -->
-                    <div class="card">
-                        <h2>Sample exam question</h2>
-                        <p class="sub">Interact like a real candidate — try copying the question or pasting an answer.</p>
-                        <div class="exam-q">
-                            <div class="q-title">1. Which browser API delivers events reliably even when a page is closing?</div>
-                            <label class="opt"><input type="radio" name="q1" value="a"> localStorage</label>
-                            <label class="opt"><input type="radio" name="q1" value="b"> navigator.sendBeacon()</label>
-                            <label class="opt"><input type="radio" name="q1" value="c"> XMLHttpRequest (sync)</label>
+            <aside class="console" id="console" aria-label="Proctor view">
+                <div class="console-head">
+                    <span class="console-title"><span class="pulse" aria-hidden="true"></span>Proctor view</span>
+                    <span class="console-id">What your server receives</span>
+                </div>
+                <div class="score-block">
+                    <div class="score-row">
+                        <div>
+                            <div class="score-num" id="scoreNum">100</div>
+                            <span class="score-cap">Integrity score</span>
                         </div>
-                        <div class="exam-q">
-                            <div class="q-title">2. Short answer — paste something here to trigger <span class="mono">paste_attempt</span>:</div>
-                            <textarea placeholder="Type or paste your answer…" aria-label="Short answer"></textarea>
-                            <div class="copy-me">Try selecting and copying this sentence to trigger a <span class="mono">copy_attempt</span> violation, or drag it into the box above for a <span class="mono">drop_attempt</span>.</div>
-                        </div>
+                        <span class="status" id="scoreStatus">Clean session</span>
+                    </div>
+                    <div class="meter" aria-hidden="true"><span id="scoreMeter"></span></div>
+                    <dl class="stats">
+                        <div><dt id="violationCount">0</dt><dd>violations</dd></div>
+                        <div><dt id="eventCount">0</dt><dd>events captured</dd></div>
+                        <div><dt id="awayTime">0 s</dt><dd>time away</dd></div>
+                    </dl>
+                </div>
+                <div class="breakdown">
+                    <div class="breakdown-head"><h3>Score breakdown</h3><span id="formula">100 − 0 = 100</span></div>
+                    <ul id="breakdown"><li><span class="none">No flags yet. Each violation subtracts its weight.</span></li></ul>
+                </div>
+                <div class="console-controls">
+                    <button class="cbtn" id="btnFs" type="button">Enter fullscreen</button>
+                    <button class="cbtn" id="btnExitFs" type="button">Exit fullscreen</button>
+                    <button class="cbtn" id="btnCustom" type="button">Flag custom violation</button>
+                    <button class="cbtn" id="btnReset" type="button">Reset demo</button>
+                </div>
+                <div class="log-head">
+                    <h3>Live event log</h3>
+                    <button class="cbtn" id="btnClear" type="button">Clear</button>
+                </div>
+                <ul class="log" id="log" aria-label="Live event log">
+                    <li class="empty">Waiting for events… switch tabs or copy some text.</li>
+                </ul>
+                <p class="sr-only" id="liveStatus" aria-live="polite"></p>
+            </aside>
+        </div>
+
+        <section class="section tint">
+            <div class="wrap tag-layout">
+                <div>
+                    <h2>This entire demo is one script tag</h2>
+                    <p class="sub">In production, events POST to your collector endpoint instead of this page.</p>
+                    <div class="cta-row">
+                        <a class="btn btn-primary" href="../docs.html">Read the docs</a>
+                        <a class="btn" href="../index.html#setup">Set it up</a>
+                        <a class="btn" href="https://buymeacoffee.com/tanzir" target="_blank" rel="noopener"><span aria-hidden="true">☕</span>Support this project</a>
                     </div>
                 </div>
-
-                <!-- RIGHT COLUMN -->
-                <div style="display:flex;flex-direction:column;gap:16px;">
-                    <div class="card log-card">
-                        <div class="log-head">
-                            <h2>Live event log</h2>
-                            <button class="btn btn-sm" id="btnClear">Clear</button>
-                        </div>
-                        <div class="log" id="log">
-                            <div class="log-empty" id="logEmpty">Waiting for events… switch tabs or copy some text.</div>
-                        </div>
-                    </div>
-
-                    <div class="card">
-                        <h2>This entire demo is one script tag</h2>
-                        <p class="sub">In production, events POST to your collector endpoint instead of this page.</p>
-                        <pre class="snippet">&lt;script src="tinyproctor.min.js" data-tinyproctor
+                <div class="codeblock">
+                    <div class="cb-head"><span>exam-page.html</span><button class="copy-btn" id="copySnippet" type="button">Copy</button></div>
+<pre id="snippet"><span class="t">&lt;script</span> <span class="a">src</span>=<span class="v">"tinyproctor.min.js"</span> <span class="a">data-tinyproctor</span>
   <span class="a">data-endpoint</span>=<span class="v">"https://your-site.com/collect.php"</span>
   <span class="a">data-exam-id</span>=<span class="v">"FINAL_2026"</span>
-  <span class="a">data-attempt-id</span>=<span class="v">"ATTEMPT_1001"</span>&gt;
-&lt;/script&gt; <span class="c">// that's it — no dependencies, under 7 KB gzipped</span></pre>
-                        <div class="controls">
-                            <a class="btn" href="../docs.html">Read the docs</a>
-                            <a class="bmc" href="https://buymeacoffee.com/tanzir" rel="noopener" target="_blank" rel="noopener">[ ☕ support this project ]</a>
-                        </div>
-                    </div>
+  <span class="a">data-attempt-id</span>=<span class="v">"ATTEMPT_1001"</span><span class="t">&gt;</span>
+<span class="t">&lt;/script&gt;</span> <span class="c">// that's it — no dependencies, under 7 KB gzipped</span></pre>
                 </div>
             </div>
         </section>
     </main>
 
-    <footer>
-        <div class="container footer-inner">
-            <div class="footer-note">tinyproctor.js — free &amp; open source. Built by <a href="https://tanziro.com" style="text-decoration:underline;" target="_blank" rel="noopener">tanziro.com</a> · <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;" target="_blank" rel="noopener">Buy me a coffee</a></div>
-            <div class="footer-links">
-                <a href="../index.html">Home</a>
-                <a href="../docs.html">Docs</a>
-                <a href="../compare.html">Compare</a>
-                <a href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
+    <div class="dock" id="dock" aria-hidden="true">
+        <b id="dockScore">100</b><span id="dockText">Integrity score. Try switching tabs.</span><a href="#console" tabindex="-1">Proctor view</a>
+    </div>
+
+    <footer class="site-footer">
+        <div class="wrap">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <a class="brand" href="../index.html" aria-label="tinyproctor.js home"><svg class="logo" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg><span class="brand-name">tinyproctor<span class="tld">.js</span></span></a>
+                    <p>Minimal, self-hosted, dependency-free browser integrity monitoring for online exams.</p>
+                </div>
+                <div>
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="../docs.html">Docs</a></li>
+                        <li><a href="../demo/exam.html">Live demo</a></li>
+                        <li><a href="../compare.html">Compare</a></li>
+                        <li><a href="../llms.txt">llms.txt</a></li>
+                        <li><a href="https://github.com/tanzir71/tinyproctorjs/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Alternatives</h4>
+                    <ul>
+                        <li><a href="../proctorio-alternative.html">vs Proctorio</a></li>
+                        <li><a href="../honorlock-alternative.html">vs Honorlock</a></li>
+                        <li><a href="../respondus-lockdown-browser-alternative.html">vs Respondus</a></li>
+                        <li><a href="../safe-exam-browser-alternative.html">vs Safe Exam Browser</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Project</h4>
+                    <ul>
+                        <li><a href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a></li>
+                        <li><a href="https://buymeacoffee.com/tanzir" target="_blank" rel="noopener">Buy me a coffee</a></li>
+                        <li><a href="https://tanziro.com" target="_blank" rel="noopener">tanziro.com</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-base">
+                <span>tinyproctor.js — built by <a href="https://tanziro.com" target="_blank" rel="noopener">tanziro.com</a></span>
+                <span>MIT licensed. Free for commercial use.</span>
             </div>
         </div>
     </footer>
 
-    <script src="../tinyproctor.js" data-tinyproctor data-autoinit="false"></script>
+    <script src="../tinyproctor.min.js" data-tinyproctor data-autoinit="false"></script>
     <script>
     (function () {
         'use strict'
+        var TP = window.TinyProctor
+        if (!TP) return
 
-        var CIRC = 326.7
+        var CHECK = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.2 6.3 4.8 8.8 9.8 3.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'
         var SIGNALS = [
             { key: 'tab_hidden', title: 'Switch to another tab', hint: 'Open a new tab or switch to an existing one, then come back.' },
             { key: 'window_blur', title: 'Click outside this window', hint: 'Click on another app or your desktop.' },
-            { key: 'fullscreen_exit', title: 'Exit fullscreen', hint: 'Click "Enter fullscreen" above, then press Esc.' },
+            { key: 'fullscreen_exit', title: 'Exit fullscreen', hint: 'Press \u201cEnter fullscreen\u201d in the proctor view, then press Esc.' },
             { key: 'copy_attempt', title: 'Copy text', hint: 'Select any text and press Ctrl/Cmd+C.' },
             { key: 'paste_attempt', title: 'Paste text', hint: 'Paste into the short-answer box (Ctrl/Cmd+V).' },
             { key: 'context_menu', title: 'Right-click anywhere', hint: 'Open the browser context menu.' },
             { key: 'print_attempt', title: 'Try to print', hint: 'Press Ctrl/Cmd+P (the dialog itself counts).' },
             { key: 'devtools_key', title: 'Open DevTools', hint: 'Press F12 or Ctrl/Cmd+Shift+I.' },
             { key: 'page_idle', title: 'Go idle for 15 seconds', hint: 'Hands off the mouse and keyboard.' },
-            { key: 'drop_attempt', title: 'Drag text into the answer box', hint: 'New in v1.1: select the sentence under the box and drag it in.' },
-            { key: 'insert_burst', title: 'Insert a block of text at once', hint: 'New in v1.1: a text expander, dictation, or an AI browser agent filling the box (40+ characters in one go).' },
-            { key: 'multi_screen', title: 'Use a second display', hint: 'New in v1.1, Chrome/Edge: connect another monitor and reload.' },
-            { key: 'custom', title: 'Flag a custom violation', hint: 'Click "Flag custom violation" — your own app logic can call markViolation().' }
+            { key: 'drop_attempt', title: 'Drag text into the answer box', hint: 'Select the sentence under the box and drag it in.', isNew: true },
+            { key: 'insert_burst', title: 'Insert a block of text at once', hint: 'A text expander, dictation, or an AI browser agent filling the box (40+ characters in one go). Or press \u201cSimulate an AI agent answer\u201d.', isNew: true },
+            { key: 'multi_screen', title: 'Use a second display', hint: 'Chrome/Edge: connect another monitor and reload.', isNew: true },
+            { key: 'custom', title: 'Flag a custom violation', hint: 'Press \u201cFlag custom violation\u201d \u2014 your own app logic can call <code>markViolation()</code>.' }
         ]
+        var LABELS = {
+            tab_hidden: 'Tab hidden', window_blur: 'Window lost focus', fullscreen_exit: 'Left fullscreen',
+            devtools_key: 'DevTools shortcut', devtools_resize: 'DevTools or side panel', copy_attempt: 'Copy',
+            cut_attempt: 'Cut', paste_attempt: 'Paste', context_menu: 'Right-click', print_attempt: 'Print', page_idle: 'Idle',
+            multi_screen: 'Second screen', automation_flag: 'Automated browser', drop_attempt: 'Text dropped',
+            insert_burst: 'Bulk text insert', custom: 'Custom flag'
+        }
+        var CUSTOM_WEIGHT = 10
+        var AGENT_TEXT = 'navigator.sendBeacon() hands the data to the browser, which delivers it even while the page is unloading.'
 
-        var logEl = document.getElementById('log')
-        var logEmpty = document.getElementById('logEmpty')
-        var scoreNum = document.getElementById('scoreNum')
-        var gaugeBar = document.getElementById('gaugeBar')
-        var scoreStatus = document.getElementById('scoreStatus')
-        var violationCountEl = document.getElementById('violationCount')
-        var eventCountEl = document.getElementById('eventCount')
-        var chipsEl = document.getElementById('chips')
-        var checklistEl = document.getElementById('checklist')
-        var eventCount = 0
+        function $(id) { return document.getElementById(id) }
+        var logEl = $('log'), scoreNum = $('scoreNum'), scoreMeter = $('scoreMeter'), scoreStatus = $('scoreStatus')
+        var violationCountEl = $('violationCount'), eventCountEl = $('eventCount'), awayEl = $('awayTime')
+        var breakdownEl = $('breakdown'), formulaEl = $('formula'), checklistEl = $('checklist'), liveStatus = $('liveStatus')
+        var caughtNum = $('caughtNum'), caughtBar = $('caughtBar'), dockScore = $('dockScore'), dockText = $('dockText')
+        var eventCount = 0, caught = {}, inst = null
+        $('caughtTotal').textContent = String(SIGNALS.length)
+
+        function weightOf(key) {
+            if (key === 'custom') return CUSTOM_WEIGHT
+            var w = inst ? inst.getConfig().weights[key] : TP.defaultWeights[key]
+            return typeof w === 'number' ? w : 0
+        }
+        function colorFor(score) { return score >= 80 ? 'var(--ok)' : score >= 50 ? 'var(--warn)' : 'var(--bad)' }
+        function secs(ms) { return ms >= 60000 ? Math.floor(ms / 60000) + 'm ' + Math.round((ms % 60000) / 1000) + 's' : (Math.round(ms / 100) / 10) + ' s' }
 
         function buildChecklist() {
             checklistEl.innerHTML = ''
             SIGNALS.forEach(function (s) {
-                var item = document.createElement('div')
-                item.className = 'check-item'
-                item.id = 'check_' + s.key
-                item.innerHTML =
-                    '<div class="check-box">✓</div>' +
-                    '<div><div class="check-title">' + s.title + '</div>' +
-                    '<div class="check-hint">' + s.hint + ' <span class="check-key mono">' + s.key + '</span></div></div>'
-                checklistEl.appendChild(item)
+                var li = document.createElement('li')
+                li.className = 'check'
+                li.id = 'check_' + s.key
+                li.innerHTML =
+                    '<span class="check-box">' + CHECK + '</span>' +
+                    '<div><div class="check-title">' + s.title + (s.isNew ? '<span class="new-tag">v1.1</span>' : '') + '</div>' +
+                    '<div class="check-hint">' + s.hint + '</div></div>' +
+                    '<span class="key">' + s.key + ' <b>\u2212' + weightOf(s.key) + '</b><span class="n"></span></span>'
+                checklistEl.appendChild(li)
             })
         }
 
-        function renderChips(counts) {
-            chipsEl.innerHTML = ''
+        function renderProgress() {
+            var n = Object.keys(caught).length
+            caughtNum.textContent = String(n)
+            caughtBar.style.width = (100 * n / SIGNALS.length) + '%'
+        }
+
+        function renderCounts(counts) {
             SIGNALS.forEach(function (s) {
+                var li = $('check_' + s.key)
                 var n = counts[s.key] || 0
-                var chip = document.createElement('span')
-                chip.className = 'chip' + (n > 0 ? ' hit' : '')
-                chip.innerHTML = s.key + ' <b>' + n + '</b>'
-                chipsEl.appendChild(chip)
+                if (li) li.querySelector('.n').textContent = n ? '\u00d7' + n : ''
             })
+            var keys = Object.keys(counts).filter(function (k) { return counts[k] > 0 })
+            keys.sort(function (a, b) { return weightOf(b) * counts[b] - weightOf(a) * counts[a] })
+            var total = keys.reduce(function (sum, k) { return sum + weightOf(k) * counts[k] }, 0)
+            formulaEl.textContent = '100 \u2212 ' + total + ' = ' + Math.max(0, 100 - total)
+            if (!keys.length) {
+                breakdownEl.innerHTML = '<li><span class="none">No flags yet. Each violation subtracts its weight.</span></li>'
+                return
+            }
+            breakdownEl.innerHTML = keys.map(function (k) {
+                var w = weightOf(k)
+                return '<li><span>' + k + '</span><span class="m">' + counts[k] + ' \u00d7 ' + w + '</span><span class="s">\u2212' + (w * counts[k]) + '</span></li>'
+            }).join('')
         }
 
         function setScore(score, violations) {
-            scoreNum.textContent = String(Math.round(score))
-            violationCountEl.textContent = String(violations)
-            gaugeBar.style.strokeDashoffset = String(CIRC * (1 - score / 100))
-            var color, bg, label
-            if (score >= 80) { color = 'var(--green)'; bg = 'var(--green-bg)'; label = violations ? 'Minor flags' : 'Clean session' }
-            else if (score >= 50) { color = 'var(--amber)'; bg = 'var(--amber-bg)'; label = 'Needs review' }
-            else { color = 'var(--red)'; bg = 'var(--red-bg)'; label = 'High risk' }
-            gaugeBar.style.stroke = color
-            scoreStatus.style.color = color
-            scoreStatus.style.background = bg
+            var s = Math.round(score)
+            var label = score >= 80 ? (violations ? 'Minor flags' : 'Clean session') : score >= 50 ? 'Needs review' : 'High risk'
+            var color = colorFor(score)
+            scoreNum.textContent = String(s)
+            scoreNum.style.color = color
+            scoreMeter.style.width = Math.max(0, Math.min(100, score)) + '%'
+            scoreMeter.style.backgroundColor = color
             scoreStatus.textContent = label
+            scoreStatus.style.color = color
+            scoreStatus.style.background = score >= 80 ? 'rgba(79, 216, 160, 0.14)' : score >= 50 ? 'rgba(255, 197, 107, 0.14)' : 'rgba(255, 122, 107, 0.14)'
+            violationCountEl.textContent = String(violations)
+            dockScore.textContent = String(s)
+            dockScore.style.color = color
         }
 
-        function fmtTime(iso) {
-            var d = iso ? new Date(iso) : new Date()
-            function p(n) { return (n < 10 ? '0' : '') + n }
-            return p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds())
+        function infoLabel(p) {
+            var d = p.eventData || {}
+            if (p.eventType === 'session') return d.resumed ? 'Session resumed' : 'Session started'
+            if (p.eventType === 'heartbeat') return 'Heartbeat'
+            if (p.eventType === 'visibility') return d.unload ? 'Page unloading' : d.awayMs ? 'Back after ' + secs(d.awayMs) : 'Tab visible again'
+            if (p.eventType === 'focus') return d.awayMs ? 'Focus back after ' + secs(d.awayMs) : (d.focused === false ? 'Focus lost' : 'Focus returned')
+            if (p.eventType === 'fullscreen') return 'Entered fullscreen'
+            if (p.eventType === 'idle' && d.idle === false) return 'Active again'
+            return p.eventType
         }
 
-        function addLog(payload) {
+        function fmtTime(iso) { return (iso ? new Date(iso) : new Date()).toTimeString().slice(0, 8) }
+
+        function addLog(p) {
             eventCount += 1
             eventCountEl.textContent = String(eventCount)
-            if (logEmpty) { logEmpty.remove(); logEmpty = null }
-            var row = document.createElement('div')
-            row.className = 'log-row'
-            var isViolation = !!payload.violationKey
-            var detail = payload.violationKey || payload.eventType
-            var extra = ''
-            if (payload.eventData) {
-                try {
-                    extra = JSON.stringify(payload.eventData)
-                    if (extra === '{}' || extra === 'null') extra = ''
-                } catch (e) { extra = '' }
+            var empty = logEl.querySelector('.empty')
+            if (empty) logEl.innerHTML = ''
+            var li = document.createElement('li')
+            var t = document.createElement('time')
+            t.dateTime = p.clientTime || ''
+            t.textContent = fmtTime(p.clientTime)
+            t.title = 'seq ' + p.seq
+            var ev = document.createElement('span'); ev.className = 'ev'
+            var d = document.createElement('span'); d.className = 'd'
+            if (p.violationKey) {
+                li.className = 'is-flag is-new'
+                ev.textContent = LABELS[p.violationKey] || p.violationKey
+                var code = document.createElement('code'); code.textContent = p.violationKey; ev.appendChild(code)
+                var w = weightOf(p.violationKey)
+                d.textContent = w ? '\u2212' + w : 'flag'
+                var msg = (LABELS[p.violationKey] || p.violationKey) + ' detected. Score ' + Math.round(p.integrityScore) + '.'
+                liveStatus.textContent = msg
+                dockText.textContent = (LABELS[p.violationKey] || p.violationKey) + (w ? ' \u2212' + w : '') + ' \u00b7 ' + p.violationCount + (p.violationCount === 1 ? ' violation' : ' violations')
+            } else {
+                li.className = 'is-new'
+                ev.textContent = infoLabel(p)
+                d.textContent = '#' + p.seq
             }
-            row.innerHTML =
-                '<span class="log-time">' + fmtTime(payload.clientTime) + '</span>' +
-                '<span class="log-type ' + (isViolation ? 'violation' : 'info') + '">' + payload.eventType + '</span>' +
-                '<span class="log-detail">' + (isViolation ? payload.violationKey + ' · score → ' + payload.integrityScore : extra || '—') + '</span>'
-            logEl.insertBefore(row, logEl.firstChild)
+            li.appendChild(t); li.appendChild(ev); li.appendChild(d)
+            logEl.insertBefore(li, logEl.firstChild)
             while (logEl.children.length > 80) logEl.removeChild(logEl.lastChild)
+            var st = inst && inst.getState()
+            if (st) awayEl.textContent = secs(st.awayMs || 0)
         }
 
         function checkOff(key) {
-            var item = document.getElementById('check_' + key)
-            if (item) item.classList.add('done')
+            var li = $('check_' + key)
+            if (!li) return
+            if (!caught[key]) {
+                caught[key] = true
+                li.classList.add('done', 'flash')
+                setTimeout(function () { li.classList.remove('flash') }, 900)
+                renderProgress()
+            }
         }
 
-        var inst = null
         function boot() {
+            eventCount = 0
+            caught = {}
+            eventCountEl.textContent = '0'
+            awayEl.textContent = '0 s'
+            var attemptId = 'DEMO_' + Date.now()
+            $('attemptId').textContent = attemptId
+            inst = null
             buildChecklist()
-            renderChips({})
+            renderProgress()
+            renderCounts({})
             setScore(100, 0)
-            inst = window.TinyProctor.init({
+            dockText.textContent = 'Integrity score. Try switching tabs.'
+            inst = TP.init({
                 examId: 'DEMO_EXAM',
-                attemptId: 'DEMO_' + Date.now(),
+                attemptId: attemptId,
                 candidateLabel: 'demo_candidate',
                 silent: true,
                 persist: false,
                 idleMs: 15000,
                 heartbeatMs: 30000,
-                onEvent: function (payload) {
-                    addLog(payload)
-                },
+                weights: { custom: CUSTOM_WEIGHT },
+                onEvent: addLog,
                 onViolation: function (key, data, state) {
                     checkOff(key)
-                    renderChips(state.violationCounts)
+                    renderCounts(state.violationCounts)
                     setScore(state.integrityScore, state.violationCount)
                 }
             })
         }
 
-        document.getElementById('btnFs').addEventListener('click', function () {
-            if (inst) inst.requestFullscreen()
-        })
-        document.getElementById('btnExitFs').addEventListener('click', function () {
-            if (inst) inst.exitFullscreen()
-        })
-        document.getElementById('btnCustom').addEventListener('click', function () {
-            if (inst) inst.markViolation('custom', { note: 'flagged from demo UI' })
-        })
-        document.getElementById('btnReset').addEventListener('click', function () {
-            window.TinyProctor.destroy()
-            eventCount = 0
-            eventCountEl.textContent = '0'
-            logEl.innerHTML = '<div class="log-empty">Waiting for events… switch tabs or copy some text.</div>'
-            logEmpty = logEl.firstChild
+        $('btnFs').addEventListener('click', function () { if (inst) inst.requestFullscreen() })
+        $('btnExitFs').addEventListener('click', function () { if (inst) inst.exitFullscreen() })
+        $('btnCustom').addEventListener('click', function () { if (inst) inst.markViolation('custom', { note: 'flagged from demo UI' }) })
+        $('btnReset').addEventListener('click', function () {
+            TP.destroy()
+            logEl.innerHTML = '<li class="empty">Waiting for events\u2026 switch tabs or copy some text.</li>'
+            liveStatus.textContent = 'Demo reset.'
             boot()
         })
-        document.getElementById('btnClear').addEventListener('click', function () {
-            logEl.innerHTML = '<div class="log-empty">Log cleared. New events will appear here.</div>'
-            logEmpty = logEl.firstChild
+        $('btnClear').addEventListener('click', function () {
+            logEl.innerHTML = '<li class="empty">Log cleared. New events will appear here.</li>'
         })
+
+        // Simulated agent: one input event carrying a whole answer, the way agent browsers fill forms.
+        // A script cannot produce a trusted keystroke, so this sends the same beforeinput event an
+        // agent's text insert would, then inserts the text.
+        $('btnAgent').addEventListener('click', function () {
+            var box = $('answer')
+            box.focus()
+            box.setSelectionRange(box.value.length, box.value.length)
+            var ev = null
+            try { ev = new InputEvent('beforeinput', { inputType: 'insertText', data: AGENT_TEXT, bubbles: true, cancelable: true }) } catch (e) {}
+            if (ev && !box.dispatchEvent(ev)) return
+            var ok = false
+            try { ok = document.execCommand('insertText', false, AGENT_TEXT) } catch (e) {}
+            if (!ok) box.value += AGENT_TEXT
+        })
+
+        // Copy the snippet
+        $('copySnippet').addEventListener('click', function () {
+            var btn = this
+            var text = $('snippet').textContent
+            function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy' }, 1200) }
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done)
+            else done()
+        })
+
+        // Small screens: keep the score in view once the proctor view scrolls away.
+        var dock = $('dock'), consoleEl = $('console')
+        if ('IntersectionObserver' in window) {
+            new IntersectionObserver(function (entries) {
+                dock.classList.toggle('show', !entries[0].isIntersecting)
+            }).observe(consoleEl)
+        }
 
         boot()
     })()

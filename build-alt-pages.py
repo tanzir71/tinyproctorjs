@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Generates the per-vendor 'alternative' SEO pages. Run from repo root: python3 build-alt-pages.py"""
+"""Generates the per-vendor 'alternative' pages and holds the shared site chrome
+(head, header, footer) used by every subpage. Run from the repo root:
+
+    python3 build-alt-pages.py
+
+then `npm run build` to mirror the result into docs/."""
 import json, os
 
 BASE = "https://tanzir71.github.io/tinyproctorjs"
@@ -104,86 +109,168 @@ VENDORS = [
     },
 ]
 
-STYLE = """
-        :root {
-            --bg: #ffffff; --fg: #09090b; --muted: #52525b; --muted-2: #71717a;
-            --border: #e4e4e7; --panel: #ffffff; --hover: #fafafa;
-        }
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; }
-        body { margin: 0; background: var(--bg); color: var(--fg); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; line-height: 1.6; }
-        a { color: inherit; text-decoration: none; }
-        .container { margin: 0 auto; max-width: 1152px; padding: 0 16px; }
-        header { position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border); background: rgba(255,255,255,0.85); backdrop-filter: blur(10px); }
-        .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 12px; padding-bottom: 12px; }
-        .brand { display: inline-flex; align-items: center; gap: 12px; }
-        .logo { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--border); }
-        .logo span { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
-        .brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
-        nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
-        .nav-link { display: inline-flex; height: 36px; align-items: center; border-radius: 8px; padding: 0 8px; color: var(--muted); }
-        .nav-link:hover { background: var(--hover); color: var(--fg); }
-        .btn { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--fg); font-size: 14px; font-weight: 500; }
-        .btn:hover { background: var(--hover); }
-        .btn-primary { background: var(--fg); border-color: var(--fg); color: #fff; }
-        .btn-primary:hover { background: #18181b; }
-        .site-menu { display: flex; align-items: center; margin-left: auto; }
-        .menu-toggle { display: none; position: relative; width: 36px; height: 36px; border: 1px solid var(--fg); background: transparent; color: var(--fg); cursor: pointer; }
-        .menu-toggle::-webkit-details-marker { display: none; }
-        .menu-toggle span { position: absolute; left: 8px; right: 8px; height: 2px; background: currentColor; }
-        .menu-toggle span:nth-child(1) { top: 10px; }
-        .menu-toggle span:nth-child(2) { top: 17px; }
-        .menu-toggle span:nth-child(3) { top: 24px; }
-        @media (max-width: 639px) {
-            .header-inner { position: relative; min-height: 58px; align-items: center; flex-direction: row; gap: 12px; }
-            header .brand { min-width: 0; }
-            header .brand-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            .site-menu { flex: none; margin-left: auto; }
-            .menu-toggle { display: block; }
-            .menu-toggle:focus-visible { outline: 2px solid var(--focus, #2540ff); outline-offset: 2px; }
-            header nav { display: none; position: absolute; left: 16px; right: 16px; top: calc(100% + 1px); z-index: 50; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; margin: 0; padding: 8px; overflow: visible; border: 1px solid var(--border); background: var(--bg); box-shadow: 0 18px 36px rgba(10, 10, 10, 0.14); }
-            .site-menu[open] + nav { display: flex; }
-            header .nav-link, header .btn { width: 100%; height: 42px; justify-content: flex-start; padding: 0 12px; }
-            header .btn-primary { justify-content: center; }
-            main, .layout > *, .grid > *, .demo-grid > *, .hero-grid > *, .paths > * { min-width: 0; }
-            pre, .snippet, .table-wrap { max-width: 100%; }
-        }
-        .mono, code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-        code { font-size: 0.9em; background: var(--hover); border: 1px solid var(--border); border-radius: 6px; padding: 1px 5px; }
-        .hero { padding-top: 56px; padding-bottom: 8px; }
-        .pill { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; border: 1px solid var(--border); padding: 6px 12px; font-size: 12px; color: var(--muted); }
-        h1 { margin: 10px 0 0; font-size: 34px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; max-width: 760px; }
-        @media (min-width: 640px) { h1 { font-size: 44px; } }
-        .lead { margin-top: 14px; max-width: 700px; font-size: 16px; line-height: 1.75; color: var(--muted); }
-        .section { padding-top: 36px; padding-bottom: 0; }
-        .section:last-of-type { padding-bottom: 72px; }
-        h2 { margin: 0 0 8px; font-size: 21px; font-weight: 600; letter-spacing: -0.02em; }
-        h3 { margin: 20px 0 0; font-size: 15px; font-weight: 600; }
-        p { margin: 8px 0 0; font-size: 14.5px; color: var(--muted); max-width: 760px; }
-        p strong { color: var(--fg); }
-        .table-wrap { overflow-x: auto; margin-top: 16px; border: 1px solid var(--border); border-radius: 12px; }
-        table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 13.5px; }
-        thead th { text-align: left; font-size: 11.5px; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted-2); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--hover); }
-        tbody td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--muted); vertical-align: top; }
-        tbody tr:first-child td { border-top: none; }
-        tbody td:first-child { color: var(--fg); font-weight: 600; white-space: nowrap; }
-        .grid-2 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-top: 16px; }
-        @media (min-width: 640px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
-        .card { border-radius: 12px; border: 1px solid var(--border); padding: 18px; }
-        .card h3 { margin: 0; }
-        .card p { font-size: 14px; }
-        .cta-row { margin-top: 24px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-        .bmc { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid #fde68a; background: #fffbeb; color: #92400e; font-size: 14px; font-weight: 600; }
-        .bmc:hover { background: #fef3c7; }
-        .note { margin-top: 20px; font-size: 13px; color: var(--muted-2); max-width: 760px; }
-        footer { border-top: 1px solid var(--border); padding: 40px 0; margin-top: 56px; }
-        .footer-inner { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; }
-        @media (min-width: 640px) { .footer-inner { flex-direction: row; align-items: center; } }
-        .footer-note { font-size: 12px; color: var(--muted-2); }
-        .footer-links { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; }
-        .footer-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 4px; }
+
+# ---------------------------------------------------------------------------
+# Shared site chrome. docs.html, compare.html and demo/exam.html use the same
+# header and footer; keep them in sync with index.html.
+# ---------------------------------------------------------------------------
+LOGO = ('<svg class="logo" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true">'
+        '<g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round">'
+        '<path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/>'
+        '<path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/>'
+        '<path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg>')
+BRAND = LOGO + '<span class="brand-name">tinyproctor<span class="tld">.js</span></span>'
+GITHUB = "https://github.com/tanzir71/tinyproctorjs"
+CHANGELOG = GITHUB + "/blob/main/CHANGELOG.md"
+COFFEE = "https://buymeacoffee.com/tanzir"
+NAV = [
+    ("What's new", "index.html#whats-new", None),
+    ("Features", "index.html#features", None),
+    ("Setup", "index.html#setup", None),
+    ("Docs", "docs.html", "docs"),
+    ("Compare", "compare.html", "compare"),
+    ("Demo", "demo/exam.html", "demo"),
+]
+ALTS = [
+    ("proctorio-alternative", "vs Proctorio", "No webcam, no extension, no vendor cloud — what you give up and what you gain."),
+    ("honorlock-alternative", "vs Honorlock", "Per-session pricing vs free and self-hosted — when each model makes sense."),
+    ("respondus-lockdown-browser-alternative", "vs Respondus LockDown", "Detection vs prevention, and why zero-install matters on exam day."),
+    ("safe-exam-browser-alternative", "vs Safe Exam Browser", "Two open-source tools that solve opposite halves of the problem — and combine well."),
+]
+
+
+def head(prefix, title, desc, url, og_type="website", extra="", og_title=None, og_desc=None):
+    og_title = og_title or title
+    og_desc = og_desc or desc
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{title}</title>
+    <meta name="description" content="{desc}">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#ffffff">
+    <link rel="canonical" href="{url}">
+    <meta property="og:title" content="{og_title}">
+    <meta property="og:description" content="{og_desc}">
+    <meta property="og:type" content="{og_type}">
+    <meta property="og:url" content="{url}">
+    <meta name="twitter:card" content="summary">
+    <link rel="icon" type="image/svg+xml" href="{prefix}assets/favicon.svg">
+    <link rel="preload" href="{prefix}assets/fonts/InstrumentSans-Bold.woff" as="font" type="font/woff" crossorigin>
+    <link rel="stylesheet" href="{prefix}assets/site.css">{extra}
+</head>
 """
 
+
+def site_header(prefix, active=None):
+    links = []
+    for label, href, key in NAV:
+        cur = ""
+        if key and key == active:
+            cur = ' aria-current="page"'
+        elif key == "compare" and active == "alt":
+            cur = ' aria-current="true"'
+        links.append(f'                <a class="nav-link" href="{prefix}{href}"{cur}>{label}</a>')
+    nav = "\n".join(links)
+    return f"""<body>
+    <a href="#content" class="sr-only skip">Skip to content</a>
+
+    <header class="site-header">
+        <div class="wrap header-inner">
+            <a class="brand" href="{prefix}index.html" aria-label="tinyproctor.js home">{BRAND}</a>
+            <details class="site-menu">
+                <summary class="menu-toggle" aria-label="Open navigation" aria-controls="primary-nav"><span></span><span></span><span></span></summary>
+            </details>
+            <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation">
+{nav}
+                <a class="btn btn-sm" href="{GITHUB}" target="_blank" rel="noopener">GitHub</a>
+            </nav>
+        </div>
+    </header>
+"""
+
+
+def site_footer(prefix, scripts=""):
+    alts = "\n".join(
+        f'                        <li><a href="{prefix}{slug}.html">{label.replace(" LockDown", "")}</a></li>'
+        for slug, label, _ in ALTS
+    )
+    return f"""
+    <footer class="site-footer">
+        <div class="wrap">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <a class="brand" href="{prefix}index.html" aria-label="tinyproctor.js home">{BRAND}</a>
+                    <p>Minimal, self-hosted, dependency-free browser integrity monitoring for online exams.</p>
+                </div>
+                <div>
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="{prefix}docs.html">Docs</a></li>
+                        <li><a href="{prefix}demo/exam.html">Live demo</a></li>
+                        <li><a href="{prefix}compare.html">Compare</a></li>
+                        <li><a href="{prefix}llms.txt">llms.txt</a></li>
+                        <li><a href="{CHANGELOG}" target="_blank" rel="noopener">Changelog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Alternatives</h4>
+                    <ul>
+{alts}
+                    </ul>
+                </div>
+                <div>
+                    <h4>Project</h4>
+                    <ul>
+                        <li><a href="{GITHUB}" target="_blank" rel="noopener">GitHub</a></li>
+                        <li><a href="{COFFEE}" target="_blank" rel="noopener">Buy me a coffee</a></li>
+                        <li><a href="https://tanziro.com" target="_blank" rel="noopener">tanziro.com</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-base">
+                <span>tinyproctor.js — built by <a href="https://tanziro.com" target="_blank" rel="noopener">tanziro.com</a></span>
+                <span>MIT licensed. Free for commercial use.</span>
+            </div>
+        </div>
+    </footer>
+{scripts}    <script src="{prefix}site-menu.js"></script>
+</body>
+</html>
+"""
+
+
+def vs_cards(prefix, current=None, heading_level=3):
+    out = []
+    for slug, label, blurb in ALTS:
+        cur = ' aria-current="page"' if slug == current else ""
+        cta = "You are here" if slug == current else "Read the comparison"
+        out.append(f'                    <a href="{prefix}{slug}.html"{cur}><h{heading_level}>{label}</h{heading_level}><p>{blurb}</p><span>{cta}</span></a>')
+    return '                <div class="vs">\n' + "\n".join(out) + "\n                </div>"
+
+
+def closer(prefix, title, text, primary=("Try the live demo", "demo/exam.html"), secondary=("Read the docs", "docs.html")):
+    return f"""
+        <section class="support">
+            <div class="wrap support-inner">
+                <div>
+                    <h2>{title}</h2>
+                    <p>{text}</p>
+                </div>
+                <div class="cta-row">
+                    <a class="btn solid" href="{prefix}{primary[1]}">{primary[0]}</a>
+                    <a class="btn" href="{prefix}{secondary[1]}">{secondary[0]}</a>
+                    <a class="btn" href="{COFFEE}" target="_blank" rel="noopener"><span aria-hidden="true">☕</span>Support this project</a>
+                </div>
+            </div>
+        </section>"""
+
+
+# ---------------------------------------------------------------------------
+# Alternative pages
+# ---------------------------------------------------------------------------
 def faq_jsonld(faq):
     return json.dumps({
         "@context": "https://schema.org",
@@ -194,132 +281,113 @@ def faq_jsonld(faq):
         ],
     }, indent=2)
 
+
 def render(v):
+    url = f'{BASE}/{v["slug"]}.html'
     rows = "\n".join(
-        f"""                            <tr><td>{dim}</td><td>{us}</td><td>{them}</td></tr>"""
+        f'                            <tr><th scope="row">{dim}</th><td class="us">{us}</td><td>{them}</td></tr>'
         for dim, us, them in v["rows"]
     )
     faqs = "\n".join(
-        f"""                <h3>{q}</h3>\n                <p>{a}</p>"""
+        f"                    <details>\n                        <summary>{q}</summary>\n                        <p>{a}</p>\n                    </details>"
         for q, a in v["faq"]
     )
-    return f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{v["title"]}</title>
-    <meta name="description" content="{v["desc"]}">
-    <meta name="robots" content="index, follow">
-    <link rel="canonical" href="{BASE}/{v["slug"]}.html">
-    <meta property="og:title" content="{v["title"]}">
-    <meta property="og:description" content="{v["desc"]}">
-    <meta property="og:type" content="article">
-    <meta property="og:url" content="{BASE}/{v["slug"]}.html">
-    <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
-    <script type="application/ld+json">
-{faq_jsonld(v["faq"])}
-    </script>
-    <style>{STYLE}    </style>
-</head>
-<body>
-    <header>
-        <div class="container header-inner">
-            <a class="brand" href="./index.html">
-                <svg class="logo-mark" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="display:block;flex:none;margin:0 -4px 0 -5px"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg>
-                <span class="brand-name">tinyproctor.js</span>
-            </a>
-            <details class="site-menu">
-                <summary class="menu-toggle" aria-label="Open navigation">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </summary>
-            </details>
-                <nav aria-label="Primary navigation">
-                    <a class="nav-link" href="./index.html#features">Features</a>
-                    <a class="nav-link" href="./docs.html">Docs</a>
-                    <a class="nav-link" href="./compare.html">Compare</a>
-                    <a class="nav-link" href="./demo/exam.html">Demo</a>
-                    <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
-                </nav>
-        </div>
-    </header>
-
-    <main>
-        <section class="container hero">
-            <p class="pill"><span class="mono">comparison</span><span>tinyproctor.js vs {v["name"]}</span></p>
-            <h1>{v["h1"]}</h1>
-            <p class="lead">{v["desc"]}</p>
-            <div class="cta-row">
-                <a class="btn btn-primary" href="./demo/exam.html">Try the live demo</a>
-                <a class="btn" href="./docs.html">Read the docs</a>
+    ld = f'\n    <script type="application/ld+json">\n{faq_jsonld(v["faq"])}\n    </script>'
+    return head("./", v["title"], v["desc"], url, "article", ld) + site_header("./", "alt") + f"""
+    <main id="content">
+        <section class="page-hero">
+            <div class="wrap">
+                <a class="crumb" href="./compare.html"><b>Compare</b>tinyproctor.js vs {v["name"]}</a>
+                <h1>{v["h1"]}</h1>
+                <p class="lead">{v["desc"]}</p>
+                <div class="cta-row">
+                    <a class="btn btn-primary" href="./demo/exam.html">Try the live demo</a>
+                    <a class="btn" href="./docs.html">Read the docs</a>
+                </div>
             </div>
         </section>
 
-        <section class="container section">
-            <h2>What {v["name"]} does</h2>
-            <p>{v["what"]}</p>
-            <h2 style="margin-top:28px;">How tinyproctor.js differs</h2>
-            <p>{v["differs"]}</p>
+        <section class="section">
+            <div class="wrap duo">
+                <div class="card">
+                    <span class="tag">{v["name"]}</span>
+                    <h2>What {v["name"]} does</h2>
+                    <p>{v["what"]}</p>
+                </div>
+                <div class="card accent">
+                    <span class="tag brand">tinyproctor.js</span>
+                    <h2>How tinyproctor.js differs</h2>
+                    <p>{v["differs"]}</p>
+                </div>
+            </div>
         </section>
 
-        <section class="container section">
-            <h2>Side by side</h2>
-            <div class="table-wrap">
-                <table>
-                    <thead><tr><th>Dimension</th><th>tinyproctor.js</th><th>{v["name"]}</th></tr></thead>
-                    <tbody>
+        <section class="section tint">
+            <div class="wrap">
+                <div class="section-head">
+                    <h2>Side by side</h2>
+                </div>
+                <div class="table-scroll">
+                    <table class="cmp">
+                        <thead><tr><th scope="col">Dimension</th><th scope="col" class="us">tinyproctor.js</th><th scope="col">{v["name"]}</th></tr></thead>
+                        <tbody>
 {rows}
-                    </tbody>
-                </table>
-            </div>
-            <p class="note">Comparison reflects publicly documented behavior as of June 2026 and typical configurations; vendor capabilities and pricing change — verify details with the vendor before purchasing.</p>
-        </section>
-
-        <section class="container section">
-            <h2>Which should you choose?</h2>
-            <div class="grid-2">
-                <div class="card">
-                    <h3>Choose {v["name"]} if…</h3>
-                    <p>{v["choose_them"]}</p>
+                        </tbody>
+                    </table>
                 </div>
-                <div class="card">
-                    <h3>Choose tinyproctor.js if…</h3>
-                    <p>{v["choose_us"]}</p>
-                </div>
+                <p class="note">Comparison reflects publicly documented behavior as of June 2026 and typical configurations; vendor capabilities and pricing change — verify details with the vendor before purchasing.</p>
             </div>
         </section>
 
-        <section class="container section">
-            <h2>Frequently asked questions</h2>
+        <section class="section">
+            <div class="wrap">
+                <div class="section-head">
+                    <h2>Which should you choose?</h2>
+                </div>
+                <div class="duo">
+                    <div class="card">
+                        <h3>Choose {v["name"]} if…</h3>
+                        <p>{v["choose_them"]}</p>
+                    </div>
+                    <div class="card accent">
+                        <h3>Choose tinyproctor.js if…</h3>
+                        <p>{v["choose_us"]}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <div class="wrap faq-layout">
+                <div>
+                    <h2>Frequently asked questions</h2>
+                    <p class="sub">More answers in the <a class="text-link" href="./docs.html#faq">docs FAQ</a>.</p>
+                </div>
+                <div class="faq">
 {faqs}
-            <div class="cta-row">
-                <a class="btn btn-primary" href="./demo/exam.html">See it work in 30 seconds</a>
-                <a class="bmc" href="https://buymeacoffee.com/tanzir" rel="noopener">☕ Support this project</a>
+                </div>
             </div>
         </section>
-    </main>
 
-    <footer>
-        <div class="container footer-inner">
-            <div class="footer-note">tinyproctor.js — free &amp; open source. Built by <a href="https://tanziro.com" style="text-decoration:underline;">tanziro.com</a> · <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;">Buy me a coffee</a></div>
-            <div class="footer-links">
-                <a href="./index.html">Home</a>
-                <a href="./docs.html">Docs</a>
-                <a href="./compare.html">Compare</a>
-                <a href="./demo/exam.html">Demo</a>
-                <a href="https://github.com/tanzir71/tinyproctorjs">GitHub</a>
+        <section class="section tint">
+            <div class="wrap">
+                <div class="section-head split">
+                    <div>
+                        <h2>Other comparisons</h2>
+                    </div>
+                    <a class="text-link" href="./compare.html">See the full comparison matrix</a>
+                </div>
+{vs_cards("./", v["slug"])}
             </div>
-        </div>
-    </footer>
-    <script src="./site-menu.js"></script>
-</body>
-</html>
-"""
+        </section>
+{closer("./", "See it work in 30 seconds", "Open the live demo, switch tabs or paste some text, and watch the integrity score react. It runs in your browser and nothing is uploaded.")}
+    </main>
+""" + site_footer("./")
 
-for v in VENDORS:
-    path = os.path.join(OUT, v["slug"] + ".html")
-    with open(path, "w", encoding="utf-8") as f:
-        f.write(render(v))
-    print("wrote", path)
+
+if __name__ == "__main__":
+    for v in VENDORS:
+        path = os.path.join(OUT, v["slug"] + ".html")
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(render(v))
+        print("wrote", path)

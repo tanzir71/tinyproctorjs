@@ -6,12 +6,16 @@
     <title>Documentation — tinyproctor.js Implementation Guide</title>
     <meta name="description" content="Complete implementation guide for tinyproctor.js: quick start, configuration reference, JavaScript API, payload schema, PHP and Node.js collector examples, CORS setup, and FAQ.">
     <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#ffffff">
     <link rel="canonical" href="https://tanzir71.github.io/tinyproctorjs/docs.html">
     <meta property="og:title" content="tinyproctor.js Documentation">
     <meta property="og:description" content="Quick start, full configuration reference, API docs, and self-hosted collector examples for browser exam integrity monitoring.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://tanzir71.github.io/tinyproctorjs/docs.html">
+    <meta name="twitter:card" content="summary">
     <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg">
+    <link rel="preload" href="./assets/fonts/InstrumentSans-Bold.woff" as="font" type="font/woff" crossorigin>
+    <link rel="stylesheet" href="./assets/site.css">
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -22,183 +26,131 @@
     }
     </script>
     <style>
-        :root {
-            --bg: #f4f3ee; --fg: #0a0a0a; --muted: #6b6b66; --muted-2: #8a877e;
-            --border: #cfcdc4; --panel: #fbfaf6; --hover: #ebe9e1; --focus: #2540ff;
+        .docs-layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 72px; padding-top: 56px; padding-bottom: 104px; }
+        .toc { position: sticky; top: 92px; align-self: start; max-height: calc(100vh - 112px); overflow-y: auto; }
+        .toc-title { margin: 0 0 12px; font-size: 13.5px; font-weight: 700; color: var(--slate); }
+        .toc ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--rule); }
+        .toc a { display: block; margin-left: -1px; padding: 6px 0 6px 14px; border-left: 2px solid transparent; color: var(--slate); font-size: 15px; line-height: 1.35; text-decoration: none; }
+        .toc a:hover { color: var(--ink); }
+        .toc a.is-active { border-left-color: var(--blue); color: var(--ink); font-weight: 700; }
+        .toc-meta { margin-top: 24px; padding-top: 18px; border-top: 1px solid var(--rule); display: grid; gap: 8px; font-size: 14px; }
+        .toc-meta a { color: var(--blue-ink); font-weight: 700; text-decoration: none; }
+        .toc-meta a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+        .prose { min-width: 0; max-width: 800px; }
+        .prose section + section { margin-top: 64px; padding-top: 56px; border-top: 1px solid var(--rule); }
+        .prose h2 { font-size: 34px; }
+        .prose h3 { margin-top: 36px; font-size: 19px; }
+        .prose p { margin-top: 14px; font-size: 16.5px; line-height: 1.7; color: #3a414c; }
+        .prose h2 + p { margin-top: 16px; }
+        .prose strong { color: var(--ink); }
+        .prose a { color: var(--blue-ink); font-weight: 700; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+        .prose a:hover { color: var(--ink); }
+        .prose ul { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 10px; }
+        .prose li { position: relative; padding-left: 20px; font-size: 16.5px; line-height: 1.65; color: #3a414c; }
+        .prose li::before { content: ""; position: absolute; left: 2px; top: 11px; width: 6px; height: 6px; border-radius: 2px; background: var(--blue); }
+        .prose em { font-style: italic; }
+
+        .callout { margin-top: 24px; padding: 18px 20px; border-radius: var(--r-md); background: var(--blue-wash); border-left: 3px solid var(--blue); font-size: 15.5px; line-height: 1.65; color: var(--ink); }
+        .callout.warn { background: var(--mist); border-left-color: var(--ink); }
+        .callout code { background: rgba(255,255,255,0.75); }
+        .callout.new { margin: 0 0 48px; }
+
+        .formula { margin-top: 18px; padding: 18px 20px; border: 1px solid var(--rule); border-radius: var(--r-md); background: var(--mist); font: 400 16px/1.5 var(--f-mono); }
+        .formula code { background: none; padding: 0; font-size: inherit; }
+
+        .table-scroll { margin-top: 20px; }
+        .ref { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14.5px; line-height: 1.55; }
+        .ref th, .ref td { padding: 12px 16px; text-align: left; vertical-align: top; border-top: 1px solid var(--rule); color: #3a414c; }
+        .ref thead th { border-top: 0; background: var(--mist); font-size: 13.5px; font-weight: 700; color: var(--slate); white-space: nowrap; }
+        .ref td:first-child { white-space: nowrap; color: var(--ink); }
+        .ref td:first-child .new-tag { margin-left: 4px; }
+        .ref code { font-size: 13px; color: var(--ink); background: var(--mist); padding: 1px 5px; border-radius: 4px; }
+        .ref td:first-child code { background: none; padding: 0; font-size: 13.5px; }
+        .ref tbody tr:hover td { background: #fafbfc; }
+
+        .codeblock code { font: inherit; background: none; padding: 0; color: inherit; }
+        .diagram { margin: 24px 0 0; border: 1px solid var(--rule); border-radius: var(--r-lg); background: var(--paper); overflow-x: auto; }
+        .diagram svg { display: block; width: 100%; min-width: 640px; height: auto; }
+
+        @media (max-width: 1000px) {
+            .docs-layout { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-top: 32px; }
+            .toc { position: static; max-height: none; padding: 18px 20px; border: 1px solid var(--rule); border-radius: var(--r-lg); }
+            .toc ol { columns: 2; column-gap: 24px; border-left: 0; }
+            .toc a { padding-left: 0; border-left: 0; }
+            .toc a.is-active { color: var(--slate); font-weight: 400; }
         }
-        * { box-sizing: border-box; }
-        html { scroll-behavior: smooth; scroll-padding-top: 80px; }
-        body {
-            margin: 0; background: var(--bg); color: var(--fg);
-            font-family: "Inter", "Inter Tight", "Helvetica Neue", Helvetica, Arial, system-ui, sans-serif;
-            line-height: 1.6;
+        @media (max-width: 720px) {
+            .prose h2 { font-size: 28px; }
+            .prose p, .prose li { font-size: 16px; }
+            .prose section + section { margin-top: 48px; padding-top: 40px; }
+            .ref th, .ref td { padding: 10px 12px; font-size: 14px; }
         }
-        a { color: inherit; text-decoration: none; }
-        .container { margin: 0 auto; max-width: 1152px; padding: 0 16px; }
-        header {
-            position: sticky; top: 0; z-index: 40; border-bottom: 1px solid var(--border);
-            background: rgba(244, 243, 238, 0.9); backdrop-filter: blur(10px);
-        }
-        .header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 12px; padding-bottom: 12px; }
-        .brand { display: inline-flex; align-items: center; gap: 12px; }
-        .logo { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 0; border: 1px solid var(--border); }
-        .logo span { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 12px; }
-        .brand-name { font-size: 14px; font-weight: 600; letter-spacing: -0.02em; }
-        nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
-        .nav-link { display: inline-flex; height: 36px; align-items: center; border-radius: 0; padding: 0 8px; color: var(--muted); }
-        .nav-link:hover, .nav-link[aria-current="page"] { background: var(--hover); color: var(--fg); }
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 14px;
-            border-radius: 0; border: 1px solid var(--border); background: var(--bg); color: var(--fg);
-            font-size: 14px; font-weight: 500;
-        }
-        .btn:hover { background: var(--hover); }
-        .btn-primary { background: var(--fg); border-color: var(--fg); color: #fff; }
-        .btn-primary:hover { background: #2540ff; }
-        .mono, code { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; }
-        code { font-size: 0.9em; background: var(--hover); border: 1px solid var(--border); border-radius: 0; padding: 1px 5px; }
-        pre {
-            background: #0c0d0e; color: #f4f3ee; border-radius: 0; padding: 16px;
-            font-size: 13px; line-height: 1.6; overflow-x: auto; margin: 14px 0 6px;
-        }
-        pre code { background: none; border: none; padding: 0; color: inherit; font-size: inherit; }
-        .layout { display: grid; grid-template-columns: 1fr; gap: 32px; padding-top: 40px; padding-bottom: 80px; }
-        @media (min-width: 960px) { .layout { grid-template-columns: 220px minmax(0, 1fr); } }
-        .toc { position: sticky; top: 76px; align-self: start; display: none; }
-        @media (min-width: 960px) { .toc { display: block; } }
-        .toc-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted-2); font-weight: 700; margin-bottom: 10px; }
-        .toc a { display: block; padding: 5px 0; font-size: 13px; color: var(--muted); border-left: 2px solid transparent; padding-left: 10px; margin-left: -12px; }
-        .toc a:hover { color: var(--fg); }
-        h1 { margin: 0; font-size: 34px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.15; }
-        .lead { margin-top: 12px; font-size: 16px; color: var(--muted); max-width: 640px; }
-        h2 { margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
-        article section { margin-top: 72px; border-top: 1px solid var(--border); padding-top: 36px; }
-        article section:first-of-type { margin-top: 48px; }
-        section h2 + h2, section h2:not(:first-child) { margin-top: 40px; border-top: 1px solid var(--rule-soft, var(--border)); padding-top: 24px; }
-        h3 { margin: 32px 0 0; font-size: 16px; font-weight: 600; }
-        p { margin: 10px 0 0; font-size: 14.5px; color: var(--muted); max-width: 720px; }
-        p strong { color: var(--fg); }
-        .table-wrap { overflow-x: auto; margin: 16px 0 6px; border: 1px solid var(--border); border-radius: 0; }
-        table { width: 100%; border-collapse: collapse; min-width: 640px; font-size: 13.5px; }
-        thead th {
-            text-align: left; font-size: 11.5px; letter-spacing: 0.07em; text-transform: uppercase;
-            color: var(--muted-2); font-weight: 700; padding: 10px 14px; border-bottom: 1px solid var(--border); background: var(--hover);
-        }
-        tbody td { padding: 10px 14px; border-top: 1px solid var(--border); color: var(--muted); vertical-align: top; line-height: 1.5; }
-        tbody tr:first-child td { border-top: none; }
-        tbody td:first-child { white-space: nowrap; }
-        tbody td strong { color: var(--fg); }
-        .callout {
-            margin-top: 16px; border: 1px solid var(--border); border-left: 3px solid var(--fg);
-            border-radius: 0; padding: 12px 16px; font-size: 14px; color: var(--muted); max-width: 720px;
-        }
-        .callout strong { color: var(--fg); }
-        ul { margin: 10px 0 0; padding-left: 20px; color: var(--muted); font-size: 14.5px; }
-        li { margin: 5px 0; }
-        footer { border-top: 1px solid var(--border); padding: 40px 0; }
-        .footer-inner { display: flex; flex-direction: column; gap: 12px; justify-content: space-between; }
-        @media (min-width: 640px) { .footer-inner { flex-direction: row; align-items: center; } }
-        .footer-note { font-size: 12px; color: var(--muted-2); }
-        .footer-links { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; }
-        .footer-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 4px; }
-        /* unified site header */
-        header { background: rgba(244, 243, 238, 0.92); }
-        header .brand { display: inline-flex; align-items: center; gap: 12px; }
-        header .logo { display: grid; place-items: center; width: 34px; height: 34px; border: 0; background: var(--fg); }
-        header .logo span { font-family: "JetBrains Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace; font-size: 11px; color: var(--bg); letter-spacing: 0.05em; }
-        header nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 6px; font-size: 14px; }
-        header .nav-link { display: inline-flex; height: 36px; align-items: center; padding: 0 10px; color: var(--muted); transition: background-color 120ms ease, color 120ms ease; }
-        header .nav-link:hover { background: var(--hover, var(--bg-alt)); color: var(--fg); }
-        header .nav-link[aria-current="page"] { background: transparent; color: var(--muted); }
-        header .btn { height: 40px; padding: 0 18px; border: 1px solid var(--fg); background: transparent; color: var(--fg); font-size: 14px; font-weight: 550; font-family: inherit; transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease; }
-        header .btn:hover { background: var(--fg); color: var(--bg); }
-        header .btn-primary { background: var(--fg); border-color: var(--fg); color: var(--bg); }
-        header .btn-primary:hover { background: #2540ff; border-color: #2540ff; color: #fff; }
-        /* mobile site menu */
-        .site-menu { display: flex; align-items: center; margin-left: auto; }
-        .menu-toggle { display: none; position: relative; width: 36px; height: 36px; border: 1px solid var(--fg); background: transparent; color: var(--fg); cursor: pointer; }
-        .menu-toggle::-webkit-details-marker { display: none; }
-        .menu-toggle span { position: absolute; left: 8px; right: 8px; height: 2px; background: currentColor; }
-        .menu-toggle span:nth-child(1) { top: 10px; }
-        .menu-toggle span:nth-child(2) { top: 17px; }
-        .menu-toggle span:nth-child(3) { top: 24px; }
-        @media (max-width: 639px) {
-            .header-inner { position: relative; min-height: 58px; align-items: center; flex-direction: row; gap: 12px; }
-            header .brand { min-width: 0; }
-            header .brand-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-            .site-menu { flex: none; margin-left: auto; }
-            .menu-toggle { display: block; }
-            .menu-toggle:focus-visible { outline: 2px solid var(--focus, #2540ff); outline-offset: 2px; }
-            header nav { display: none; position: absolute; left: 16px; right: 16px; top: calc(100% + 1px); z-index: 50; flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 4px; margin: 0; padding: 8px; overflow: visible; border: 1px solid var(--border); background: var(--bg); box-shadow: 0 18px 36px rgba(10, 10, 10, 0.14); }
-            .site-menu[open] + nav { display: flex; }
-            header .nav-link, header .btn { width: 100%; height: 42px; justify-content: flex-start; padding: 0 12px; }
-            header .btn-primary { justify-content: center; }
-            main, .layout > *, .grid > *, .demo-grid > *, .hero-grid > *, .paths > * { min-width: 0; }
-            pre, .snippet, .table-wrap { max-width: 100%; }
-        }
-        /* end mobile site menu */
     </style>
 </head>
 <body>
-    <header>
-        <div class="container header-inner">
-            <a class="brand" href="./index.html">
-                <svg class="logo-mark" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true" style="display:block;flex:none;margin:0 -4px 0 -5px"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg>
-                <span class="brand-name">tinyproctor.js</span>
-            </a>
+    <a href="#content" class="sr-only skip">Skip to content</a>
+
+    <header class="site-header">
+        <div class="wrap header-inner">
+            <a class="brand" href="./index.html" aria-label="tinyproctor.js home"><svg class="logo" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg><span class="brand-name">tinyproctor<span class="tld">.js</span></span></a>
             <details class="site-menu">
-
-                <summary class="menu-toggle" aria-label="Open navigation">
-
-                    <span></span>
-
-                    <span></span>
-
-                    <span></span>
-
-                </summary>
-
+                <summary class="menu-toggle" aria-label="Open navigation" aria-controls="primary-nav"><span></span><span></span><span></span></summary>
             </details>
-
-                <nav aria-label="Primary navigation">
+            <nav class="primary-nav" id="primary-nav" aria-label="Primary navigation">
+                <a class="nav-link" href="./index.html#whats-new">What's new</a>
                 <a class="nav-link" href="./index.html#features">Features</a>
                 <a class="nav-link" href="./index.html#setup">Setup</a>
                 <a class="nav-link" href="./docs.html" aria-current="page">Docs</a>
                 <a class="nav-link" href="./compare.html">Compare</a>
                 <a class="nav-link" href="./demo/exam.html">Demo</a>
-                <a class="btn btn-primary" href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
-                </nav>
+                <a class="btn btn-sm" href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
+            </nav>
         </div>
     </header>
 
-    <main class="container layout">
-        <aside class="toc" aria-label="Table of contents">
-            <div class="toc-title">On this page</div>
-            <a href="#quick-start">Quick start</a>
-            <a href="#what-it-detects">What it detects</a>
-            <a href="#configuration">Configuration</a>
-            <a href="#scoring">Integrity scoring</a>
-            <a href="#js-api">JavaScript API</a>
-            <a href="#payload">Payload schema</a>
-            <a href="#collector">Building a collector</a>
-            <a href="#cors">CORS</a>
-            <a href="#lms">LMS integration</a>
-            <a href="#privacy">Privacy &amp; limits</a>
-            <a href="#faq">FAQ</a>
-        </aside>
+    <main id="content">
+        <section class="page-hero">
+            <div class="wrap">
+                <a class="crumb" href="./index.html#whats-new"><b>v1.1</b>See what changed</a>
+                <h1>Implementation guide</h1>
+                <p class="lead">Everything you need to add browser integrity monitoring to your exam or quiz platform: one script tag on the exam page, one endpoint on your server.</p>
+                <div class="cta-row">
+                    <a class="btn btn-primary" href="#quick-start">Start the quick start</a>
+                    <a class="btn" href="./llms.txt">llms.txt for agents</a>
+                </div>
+            </div>
+        </section>
 
-        <article>
-            <h1>Implementation guide</h1>
-            <p class="lead">
-                Everything you need to add browser integrity monitoring to your exam or quiz platform:
-                one script tag on the exam page, one endpoint on your server.
-            </p>
-            <div class="callout">
-                <strong>New in v1.1:</strong> field changes and page changes are no longer penalised, one session and score
+        <div class="wrap docs-layout">
+            <nav class="toc" aria-label="On this page">
+                <p class="toc-title">On this page</p>
+                <ol>
+                    <li><a href="#quick-start">Quick start</a></li>
+                    <li><a href="#what-it-detects">What it detects</a></li>
+                    <li><a href="#configuration">Configuration</a></li>
+                    <li><a href="#scoring">Integrity scoring</a></li>
+                    <li><a href="#js-api">JavaScript API</a></li>
+                    <li><a href="#payload">Payload schema</a></li>
+                    <li><a href="#collector">Building a collector</a></li>
+                    <li><a href="#cors">CORS</a></li>
+                    <li><a href="#lms">LMS integration</a></li>
+                    <li><a href="#privacy">Privacy &amp; limits</a></li>
+                    <li><a href="#faq">FAQ</a></li>
+                </ol>
+                <div class="toc-meta">
+                    <a href="./demo/exam.html">Try the live demo</a>
+                    <a href="https://github.com/tanzir71/tinyproctorjs/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+                </div>
+            </nav>
+
+            <article class="prose">
+                <div class="callout new">
+                    <strong>New in v1.1:</strong> field changes and page changes are no longer penalised, one session and score
                 per attempt across quiz pages, <code>seq</code> on every event, time-away measurement, and four new signals
                 (<code>multi_screen</code>, <code>automation_flag</code>, <code>drop_attempt</code>, <code>insert_burst</code>).
-                Drop-in upgrade: replace the file. See the <a href="https://github.com/tanzir71/tinyproctorjs/blob/main/CHANGELOG.md" style="text-decoration:underline;" target="_blank" rel="noopener">changelog</a>.
-            </div>
+                Drop-in upgrade: replace the file. See the <a href="https://github.com/tanzir71/tinyproctorjs/blob/main/CHANGELOG.md" target="_blank" rel="noopener">changelog</a>.
+                </div>
 
             <section id="quick-start">
                 <h2>Quick start</h2>
@@ -206,40 +158,40 @@
 
                 <h3>Path A — ask your AI agent (recommended)</h3>
                 <p>Using Claude, Copilot, Cursor or any coding agent? Paste this prompt and it will wire everything into your stack, including the collector:</p>
-<pre><code>Add tinyproctor.js exam integrity monitoring to my project:
+<div class="codeblock"><div class="cb-head"><span>Prompt for your coding agent</span><button class="copy-btn" type="button">Copy</button></div><pre><code>Add tinyproctor.js exam integrity monitoring to my project:
 1. Fetch https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js
    and add it to my static assets.
 2. Add its script tag to my exam/quiz page with data-endpoint pointing
    at a new /collect endpoint, plus my real exam and attempt IDs.
 3. Implement /collect for my backend following
    https://tanzir71.github.io/tinyproctorjs/llms.txt — store events with
-   attemptId, violationKey and integrityScore so I can review attempts.</code></pre>
-                <p>The full machine-readable integration contract lives at <a href="./llms.txt" style="text-decoration:underline;">/llms.txt</a> — payload schema, config reference, and validation rules in one plain-text file any agent can read.</p>
+   attemptId, violationKey and integrityScore so I can review attempts.</code></pre></div>
+                <p>The full machine-readable integration contract lives at <a href="./llms.txt">/llms.txt</a> — payload schema, config reference, and validation rules in one plain-text file any agent can read.</p>
 
                 <h3>Path B — one command</h3>
                 <p>The library is a single static file. Download it straight into your project's assets:</p>
-<pre><code>curl -LO https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js</code></pre>
+<div class="codeblock"><div class="cb-head"><span>Terminal</span><button class="copy-btn" type="button">Copy</button></div><pre><code>curl -LO https://tanzir71.github.io/tinyproctorjs/tinyproctor.min.js</code></pre></div>
                 <p>Want the repo with the demo server and test suite too? <code>git clone https://github.com/tanzir71/tinyproctorjs</code></p>
 
                 <h3>Path C — manual</h3>
                 <p><strong>1. Host the script.</strong> Serve <code>tinyproctor.min.js</code> (under 7&nbsp;KB gzipped) from your own domain. No CDN, no third-party calls.</p>
                 <p><strong>2. Embed it on the exam page.</strong></p>
-<pre><code>&lt;script
+<div class="codeblock"><div class="cb-head"><span>exam-page.html</span><button class="copy-btn" type="button">Copy</button></div><pre><code>&lt;script
   src="/js/tinyproctor.min.js"
   data-tinyproctor
   data-endpoint="https://your-domain.com/collect.php"
   data-exam-id="FINAL_2026_06"
   data-attempt-id="ATTEMPT_12345"
   data-candidate-label="student_42"&gt;
-&lt;/script&gt;</code></pre>
-                <p><strong>3. Receive events.</strong> The script batches events and POSTs JSON to your <code>data-endpoint</code>. A complete collector is ~30 lines — copy-paste the <a href="#collector" style="text-decoration:underline;">PHP or Node.js examples</a> below.</p>
+&lt;/script&gt;</code></pre></div>
+                <p><strong>3. Receive events.</strong> The script batches events and POSTs JSON to your <code>data-endpoint</code>. A complete collector is ~30 lines — copy-paste the <a href="#collector">PHP or Node.js examples</a> below.</p>
                 <p>Monitoring starts automatically as soon as the script loads — no init call needed. On a multi-page quiz, put the same tag with the same <code>data-attempt-id</code> on every page: v1.1 keeps one session and one score per attempt across pages.</p>
             </section>
 
             <section id="what-it-detects">
                 <h2>What it detects</h2>
-                <div class="table-wrap">
-                    <table>
+                <div class="table-scroll">
+                    <table class="ref">
                         <thead><tr><th>Violation key</th><th>Trigger</th><th>Default weight</th></tr></thead>
                         <tbody>
                             <tr><td><code>tab_hidden</code></td><td>Candidate switches to another tab or minimizes the browser (<code>visibilitychange</code>)</td><td>10</td></tr>
@@ -253,10 +205,10 @@
                             <tr><td><code>context_menu</code></td><td>Right-click / context menu opened</td><td>5</td></tr>
                             <tr><td><code>print_attempt</code></td><td>Ctrl/Cmd+P or the browser's <code>beforeprint</code> event</td><td>10</td></tr>
                             <tr><td><code>page_idle</code></td><td>No mouse/keyboard/scroll/touch activity for <code>idleMs</code> (default 60s)</td><td>5</td></tr>
-                            <tr><td><code>drop_attempt</code> <small>v1.1</small></td><td>Text dragged and dropped into the page (bypasses paste events). File drops are ignored</td><td>15</td></tr>
-                            <tr><td><code>insert_burst</code> <small>v1.1</small></td><td>40+ characters inserted in one input event — the pattern of AI agent browsers, auto-typers and text expanders. Records the length, never the text</td><td>15</td></tr>
-                            <tr><td><code>multi_screen</code> <small>v1.1</small></td><td><code>screen.isExtended</code> is true at start or after a display change (Chromium; no permission prompt)</td><td>10</td></tr>
-                            <tr><td><code>automation_flag</code> <small>v1.1</small></td><td><code>navigator.webdriver</code> is true (WebDriver-controlled browser). Easy to spoof: <code>false</code> proves nothing</td><td>25</td></tr>
+                            <tr><td><code>drop_attempt</code> <span class="new-tag">v1.1</span></td><td>Text dragged and dropped into the page (bypasses paste events). File drops are ignored</td><td>15</td></tr>
+                            <tr><td><code>insert_burst</code> <span class="new-tag">v1.1</span></td><td>40+ characters inserted in one input event — the pattern of AI agent browsers, auto-typers and text expanders. Records the length, never the text</td><td>15</td></tr>
+                            <tr><td><code>multi_screen</code> <span class="new-tag">v1.1</span></td><td><code>screen.isExtended</code> is true at start or after a display change (Chromium; no permission prompt)</td><td>10</td></tr>
+                            <tr><td><code>automation_flag</code> <span class="new-tag">v1.1</span></td><td><code>navigator.webdriver</code> is true (WebDriver-controlled browser). Easy to spoof: <code>false</code> proves nothing</td><td>25</td></tr>
                             <tr><td><code>custom</code> / any key</td><td>Your own logic via <code>instance.markViolation(key, data)</code></td><td>—</td></tr>
                         </tbody>
                     </table>
@@ -270,8 +222,8 @@
             <section id="configuration">
                 <h2>Configuration reference</h2>
                 <p>All options are set as <code>data-*</code> attributes on the script tag (or as a config object via <code>TinyProctor.init()</code>).</p>
-                <div class="table-wrap">
-                    <table>
+                <div class="table-scroll">
+                    <table class="ref">
                         <thead><tr><th>Attribute</th><th>Default</th><th>Description</th></tr></thead>
                         <tbody>
                             <tr><td><code>data-endpoint</code></td><td>—</td><td><strong>Required for reporting.</strong> Collector URL (absolute or relative). Without it, events are kept locally only.</td></tr>
@@ -312,14 +264,14 @@
             <section id="scoring">
                 <h2>Integrity scoring</h2>
                 <p>The score starts at 100 and decreases with each weighted violation, clamped to <code>[0, 100]</code>:</p>
-                <pre><code>score = 100 − Σ ( weight[key] × count[key] )</code></pre>
+<div class="formula"><code>score = 100 − Σ ( weight[key] × count[key] )</code></div>
                 <p>Weights are fully configurable. A practical reading of the default scale:</p>
                 <ul>
                     <li><strong>80–100</strong> — clean or near-clean session</li>
                     <li><strong>50–79</strong> — worth a human review</li>
                     <li><strong>0–49</strong> — multiple or severe flags; investigate</li>
                 </ul>
-                <div class="callout">
+                <div class="callout warn">
                     <strong>Important:</strong> the score is a triage signal, not proof of cheating. A dropped window
                     focus can be a notification popup; a paste can be legitimate. Always pair automated flags with
                     human review before any academic-integrity decision.
@@ -329,7 +281,7 @@
             <section id="js-api">
                 <h2>JavaScript API</h2>
                 <p>For programmatic control, disable auto-init and configure in JS:</p>
-<pre><code>&lt;script src="/js/tinyproctor.min.js" data-tinyproctor data-autoinit="false"&gt;&lt;/script&gt;
+<div class="codeblock"><div class="cb-head"><span>exam-page.html</span><button class="copy-btn" type="button">Copy</button></div><pre><code>&lt;script src="/js/tinyproctor.min.js" data-tinyproctor data-autoinit="false"&gt;&lt;/script&gt;
 &lt;script&gt;
   var proctor = TinyProctor.init({
     endpoint: '/collect',
@@ -350,9 +302,9 @@
   startButton.addEventListener('click', function () {
     proctor.requestFullscreen()
   })
-&lt;/script&gt;</code></pre>
-                <div class="table-wrap">
-                    <table>
+&lt;/script&gt;</code></pre></div>
+                <div class="table-scroll">
+                    <table class="ref">
                         <thead><tr><th>Method</th><th>Description</th></tr></thead>
                         <tbody>
                             <tr><td><code>TinyProctor.init(config?)</code></td><td>Create + start the singleton instance. Returns the existing instance if already initialized.</td></tr>
@@ -375,7 +327,7 @@
             <section id="payload">
                 <h2>Payload schema</h2>
                 <p>Events are sent as JSON batches via <code>navigator.sendBeacon()</code> (on page exit) or <code>fetch(..., { keepalive: true })</code>:</p>
-<pre><code>{
+<div class="codeblock"><div class="cb-head"><span>Batch payload (JSON)</span><button class="copy-btn" type="button">Copy</button></div><pre><code>{
   "schemaVersion": 1,
   "clientVersion": "1.1.0",
   "kind": "batch",
@@ -405,7 +357,7 @@
       "integrityScore": 75
     }
   ]
-}</code></pre>
+}</code></pre></div>
                 <p><code>eventType</code> is one of <code>session</code>, <code>heartbeat</code>, <code>visibility</code>, <code>focus</code>, <code>fullscreen</code>, <code>devtools</code>, <code>clipboard</code>, <code>contextmenu</code>, <code>print</code>, <code>idle</code>, <code>screen</code>, <code>automation</code>, <code>input</code>, <code>custom</code>. Informational events (e.g. focus regained) have <code>violationKey: null</code>.</p>
                 <p>Delivery is at-least-once: failed batches are re-queued with exponential backoff, and unsent events survive page changes. <code>seq</code> increases by one per event within a session, so <code>(sessionId, seq)</code> is an exact deduplication key, and a gap in <code>seq</code> means events never arrived. Batches stay under 48&nbsp;KiB.</p>
                 <p>Useful <code>eventData</code>: <code>session</code> events carry <code>{ resumed, persisted, gapMs }</code>; return-to-tab and focus-back events carry <code>awayMs</code>; <code>insert_burst</code> carries <code>{ inputType, chars, targetTag }</code>.</p>
@@ -414,65 +366,65 @@
             <section id="collector">
                 <h2>Building a collector</h2>
                 <p>The collector is the only server-side piece: an endpoint that accepts JSON batches and stores them. Any stack works.</p>
-                <div style="border:1px solid var(--border); background:var(--panel); overflow-x:auto; margin-top:16px;">
-                <svg viewBox="0 0 900 270" style="display:block; min-width:640px; width:100%; height:auto;" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, SF Mono, ui-monospace, Menlo, Consolas, monospace" role="img" aria-label="Isometric diagram: exam page posts batches to your collect endpoint, which stores rows for review.">
+                <figure class="diagram">
+<svg viewBox="0 0 900 270" xmlns="http://www.w3.org/2000/svg" font-family="IBM Plex Mono, ui-monospace, Menlo, Consolas, monospace" role="img" aria-label="Isometric diagram: exam page posts batches to your collect endpoint, which stores rows for review.">
                     <defs>
                         <pattern id="dgrid" width="36" height="36" patternUnits="userSpaceOnUse">
-                            <path d="M36 0H0V36" fill="none" stroke="#e4e6ea" stroke-width="1"/>
+                            <path d="M36 0H0V36" fill="none" stroke="#eef1f5" stroke-width="1"/>
                         </pattern>
                         <marker id="darr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-                            <path d="M0 0 L10 5 L0 10 Z" fill="#0a0b0d"/>
+                            <path d="M0 0 L10 5 L0 10 Z" fill="#14171c"/>
                         </marker>
                     </defs>
-                    <rect width="900" height="270" fill="#fbfaf6"/>
+                    <rect width="900" height="270" fill="#ffffff"/>
                     <rect width="900" height="270" fill="url(#dgrid)"/>
                     <text x="22" y="26" font-size="10" letter-spacing="2" fill="#9aa0ac">TP/ARCH·02</text>
                     <text x="878" y="26" font-size="10" letter-spacing="2" fill="#9aa0ac" text-anchor="end">SELF-HOSTED</text>
 
                     <g transform="translate(140,86)">
-                        <path d="M0 0 L104 60 L37 99 L-67 39 Z" fill="#f4f5f7" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
-                        <path d="M104 60 L104 72 L37 111 L37 99 Z" fill="#dfe2e8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
-                        <path d="M-67 39 L-67 51 L37 111 L37 99 Z" fill="#c8ccd4" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
-                        <path d="M7 10 L92 59 L34 92 L-51 43 Z" fill="#0b25a8" stroke="#0a0b0d" stroke-width="1.5" stroke-linejoin="round"/>
-                        <path d="M17 19 L45 35 L29 44 L1 28 Z" fill="#1742ff"/>
-                        <text x="18" y="146" font-size="11" letter-spacing="2" fill="#0a0b0d" text-anchor="middle" font-weight="600">EXAM PAGE</text>
-                        <text x="18" y="162" font-size="9" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">SCRIPT TAG</text>
+                        <path d="M0 0 L104 60 L37 99 L-67 39 Z" fill="#f4f5f7" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M104 60 L104 72 L37 111 L37 99 Z" fill="#dfe2e8" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M-67 39 L-67 51 L37 111 L37 99 Z" fill="#c8ccd4" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M7 10 L92 59 L34 92 L-51 43 Z" fill="#14239e" stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"/>
+                        <path d="M17 19 L45 35 L29 44 L1 28 Z" fill="#2540ff"/>
+                        <text x="18" y="146" font-size="11" letter-spacing="2" fill="#14171c" text-anchor="middle" font-weight="600">EXAM PAGE</text>
+                        <text x="18" y="162" font-size="9" letter-spacing="1.5" fill="#59616f" text-anchor="middle">SCRIPT TAG</text>
                     </g>
 
-                    <path d="M280 150 H372" fill="none" stroke="#0a0b0d" stroke-width="2" marker-end="url(#darr)"/>
-                    <text x="326" y="136" font-size="9" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">POST /collect</text>
+                    <path d="M280 150 H372" fill="none" stroke="#14171c" stroke-width="2" marker-end="url(#darr)"/>
+                    <text x="326" y="136" font-size="9" letter-spacing="1.5" fill="#59616f" text-anchor="middle">POST /collect</text>
                     <text x="326" y="170" font-size="9" letter-spacing="1.5" fill="#9aa0ac" text-anchor="middle">JSON BATCH</text>
 
                     <g transform="translate(455,76)">
-                        <path d="M0 -8 L48 20 L0 48 L-48 20 Z" fill="#1742ff" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
-                        <path d="M48 20 L48 76 L0 104 L0 48 Z" fill="#1330d0" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
-                        <path d="M-48 20 L-48 76 L0 104 L0 48 Z" fill="#0b25a8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
-                        <text x="0" y="146" font-size="11" letter-spacing="2" fill="#0a0b0d" text-anchor="middle" font-weight="600">COLLECTOR</text>
-                        <text x="0" y="162" font-size="9" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">~30 LINES · PHP / NODE</text>
+                        <path d="M0 -8 L48 20 L0 48 L-48 20 Z" fill="#2540ff" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M48 20 L48 76 L0 104 L0 48 Z" fill="#1a2fd0" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
+                        <path d="M-48 20 L-48 76 L0 104 L0 48 Z" fill="#14239e" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
+                        <text x="0" y="146" font-size="11" letter-spacing="2" fill="#14171c" text-anchor="middle" font-weight="600">COLLECTOR</text>
+                        <text x="0" y="162" font-size="9" letter-spacing="1.5" fill="#59616f" text-anchor="middle">~30 LINES · PHP / NODE</text>
                     </g>
 
-                    <path d="M540 150 H630" fill="none" stroke="#0a0b0d" stroke-width="2" marker-end="url(#darr)"/>
-                    <text x="585" y="136" font-size="9" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">INSERT</text>
+                    <path d="M540 150 H630" fill="none" stroke="#14171c" stroke-width="2" marker-end="url(#darr)"/>
+                    <text x="585" y="136" font-size="9" letter-spacing="1.5" fill="#59616f" text-anchor="middle">INSERT</text>
 
                     <g transform="translate(728,84)">
                         <g transform="translate(0,40)">
-                            <path d="M0 0 L78 45 L22 77 L-56 32 Z" fill="#dfe2e8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
-                            <path d="M78 45 L78 60 L22 92 L22 77 Z" fill="#c8ccd4" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
-                            <path d="M-56 32 L-56 47 L22 92 L22 77 Z" fill="#9aa0ac" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M0 0 L78 45 L22 77 L-56 32 Z" fill="#dfe2e8" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M78 45 L78 60 L22 92 L22 77 Z" fill="#c8ccd4" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M-56 32 L-56 47 L22 92 L22 77 Z" fill="#9aa0ac" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
                         </g>
                         <g>
-                            <path d="M0 0 L78 45 L22 77 L-56 32 Z" fill="#f4f5f7" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
-                            <path d="M78 45 L78 60 L22 92 L22 77 Z" fill="#dfe2e8" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
-                            <path d="M-56 32 L-56 47 L22 92 L22 77 Z" fill="#c8ccd4" stroke="#0a0b0d" stroke-width="2.5" stroke-linejoin="round"/>
-                            <circle cx="-32" cy="34" r="4" fill="#2bd4a4" stroke="#0a0b0d" stroke-width="1.5"/>
+                            <path d="M0 0 L78 45 L22 77 L-56 32 Z" fill="#f4f5f7" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M78 45 L78 60 L22 92 L22 77 Z" fill="#dfe2e8" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
+                            <path d="M-56 32 L-56 47 L22 92 L22 77 Z" fill="#c8ccd4" stroke="#14171c" stroke-width="2.5" stroke-linejoin="round"/>
+                            <circle cx="-32" cy="34" r="4" fill="#2bd4a4" stroke="#14171c" stroke-width="1.5"/>
                         </g>
-                        <text x="11" y="160" font-size="11" letter-spacing="2" fill="#0a0b0d" text-anchor="middle" font-weight="600">STORE + REVIEW</text>
-                        <text x="11" y="176" font-size="9" letter-spacing="1.5" fill="#5e6470" text-anchor="middle">SQLITE · NDJSON · YOUR DB</text>
+                        <text x="11" y="160" font-size="11" letter-spacing="2" fill="#14171c" text-anchor="middle" font-weight="600">STORE + REVIEW</text>
+                        <text x="11" y="176" font-size="9" letter-spacing="1.5" fill="#59616f" text-anchor="middle">SQLITE · NDJSON · YOUR DB</text>
                     </g>
                 </svg>
-                </div>
+                </figure>
                 <h3>PHP + SQLite (single file)</h3>
-<pre><code>&lt;?php // collect.php
+<div class="codeblock"><div class="cb-head"><span>collect.php</span><button class="copy-btn" type="button">Copy</button></div><pre><code>&lt;?php // collect.php
 header('Access-Control-Allow-Origin: https://exams.school.edu');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -508,10 +460,10 @@ foreach (($batch['events'] ?? []) as $e) {
     $e['violationCount'] ?? 0, json_encode($e['eventData'] ?? null)
   ]);
 }
-http_response_code(204);</code></pre>
+http_response_code(204);</code></pre></div>
 
                 <h3>Node.js (no dependencies)</h3>
-<pre><code>// collect.mjs — node collect.mjs
+<div class="codeblock"><div class="cb-head"><span>collect.mjs</span><button class="copy-btn" type="button">Copy</button></div><pre><code>// collect.mjs — node collect.mjs
 import { createServer } from 'node:http'
 import { appendFileSync } from 'node:fs'
 
@@ -537,7 +489,7 @@ createServer((req, res) =&gt; {
       res.writeHead(400).end()
     }
   })
-}).listen(8787)</code></pre>
+}).listen(8787)</code></pre></div>
                 <div class="callout">
                     <strong>Production checklist:</strong> validate <code>attemptId</code> against an active attempt in
                     your database, rate-limit per session, cap request body size, and store the raw batch for audit.
@@ -571,7 +523,7 @@ createServer((req, res) =&gt; {
                 <h2>Privacy &amp; honest limits</h2>
                 <p><strong>What it never collects:</strong> no camera, no microphone, no screen recording, no keystroke contents, no clipboard contents. Events describe <em>that</em> something happened (e.g. "paste occurred in a textarea"), never <em>what</em> was pasted.</p>
                 <p><strong>Self-hosted by design:</strong> the script and the data both live on your infrastructure. No third-party processors, which dramatically simplifies GDPR/FERPA conversations.</p>
-                <p><strong>Honest limits:</strong> client-side JavaScript cannot see other devices or a phone next to the keyboard, and sees a second monitor only in Chromium browsers (<code>multi_screen</code>), and a technically skilled candidate can disable any in-page script. tinyproctor.js is a <em>deterrence and triage</em> layer for low/medium-stakes assessments — for high-stakes certification, combine it with stronger controls. See the <a href="./compare.html" style="text-decoration:underline;">honest comparison</a>.</p>
+                <p><strong>Honest limits:</strong> client-side JavaScript cannot see other devices or a phone next to the keyboard, and sees a second monitor only in Chromium browsers (<code>multi_screen</code>), and a technically skilled candidate can disable any in-page script. tinyproctor.js is a <em>deterrence and triage</em> layer for low/medium-stakes assessments — for high-stakes certification, combine it with stronger controls. See the <a href="./compare.html">honest comparison</a>.</p>
             </section>
 
             <section id="faq">
@@ -589,22 +541,88 @@ createServer((req, res) =&gt; {
                 <h3>Can candidates fake a perfect score?</h3>
                 <p>A sufficiently technical candidate can — this is true of every client-side tool. Use heartbeat gaps and missing-session detection server-side to flag tampering: a session with no events at all is itself a red flag.</p>
                 <h3>Is it really free?</h3>
-                <p>Yes — MIT licensed, free for commercial use. If it saves you a vendor contract, consider <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;" target="_blank" rel="noopener">buying me a coffee</a> to support maintenance.</p>
+                <p>Yes — MIT licensed, free for commercial use. If it saves you a vendor contract, consider <a href="https://buymeacoffee.com/tanzir" target="_blank" rel="noopener">buying me a coffee</a> to support maintenance.</p>
             </section>
-        </article>
+            </article>
+        </div>
     </main>
 
-    <footer>
-        <div class="container footer-inner">
-            <div class="footer-note">tinyproctor.js — free &amp; open source. Built by <a href="https://tanziro.com" style="text-decoration:underline;" target="_blank" rel="noopener">tanziro.com</a> · <a href="https://buymeacoffee.com/tanzir" style="text-decoration:underline;" target="_blank" rel="noopener">Buy me a coffee</a></div>
-            <div class="footer-links">
-                <a href="./index.html">Home</a>
-                <a href="./demo/exam.html">Demo</a>
-                <a href="./compare.html">Compare</a>
-                <a href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a>
+    <footer class="site-footer">
+        <div class="wrap">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <a class="brand" href="./index.html" aria-label="tinyproctor.js home"><svg class="logo" viewBox="0 0 32 32" width="32" height="32" aria-hidden="true"><g stroke="#14171c" stroke-width="1.5" stroke-linejoin="round"><path d="M16 4.5 26 10.27 16 16.04 6 10.27Z" fill="#6f84ff"/><path d="M6 10.27 16 16.04V27.5L6 21.73Z" fill="#2540ff"/><path d="M26 10.27 16 16.04V27.5L26 21.73Z" fill="#1726a8"/></g></svg><span class="brand-name">tinyproctor<span class="tld">.js</span></span></a>
+                    <p>Minimal, self-hosted, dependency-free browser integrity monitoring for online exams.</p>
+                </div>
+                <div>
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="./docs.html">Docs</a></li>
+                        <li><a href="./demo/exam.html">Live demo</a></li>
+                        <li><a href="./compare.html">Compare</a></li>
+                        <li><a href="./llms.txt">llms.txt</a></li>
+                        <li><a href="https://github.com/tanzir71/tinyproctorjs/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Alternatives</h4>
+                    <ul>
+                        <li><a href="./proctorio-alternative.html">vs Proctorio</a></li>
+                        <li><a href="./honorlock-alternative.html">vs Honorlock</a></li>
+                        <li><a href="./respondus-lockdown-browser-alternative.html">vs Respondus</a></li>
+                        <li><a href="./safe-exam-browser-alternative.html">vs Safe Exam Browser</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>Project</h4>
+                    <ul>
+                        <li><a href="https://github.com/tanzir71/tinyproctorjs" target="_blank" rel="noopener">GitHub</a></li>
+                        <li><a href="https://buymeacoffee.com/tanzir" target="_blank" rel="noopener">Buy me a coffee</a></li>
+                        <li><a href="https://tanziro.com" target="_blank" rel="noopener">tanziro.com</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-base">
+                <span>tinyproctor.js — built by <a href="https://tanziro.com" target="_blank" rel="noopener">tanziro.com</a></span>
+                <span>MIT licensed. Free for commercial use.</span>
             </div>
         </div>
     </footer>
+
+    <script>
+    (function () {
+        'use strict'
+        // Copy buttons on code blocks
+        Array.prototype.slice.call(document.querySelectorAll('.codeblock .copy-btn')).forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var pre = btn.closest('.codeblock').querySelector('pre')
+                var text = pre ? pre.textContent : ''
+                function done() { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy' }, 1200) }
+                function fallback() {
+                    var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select()
+                    try { document.execCommand('copy') } catch (e) {}
+                    document.body.removeChild(ta); done()
+                }
+                if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done).catch(fallback)
+                else fallback()
+            })
+        })
+        // Highlight the section in view in the table of contents
+        var links = Array.prototype.slice.call(document.querySelectorAll('.toc a[href^="#"]'))
+        if (!('IntersectionObserver' in window) || !links.length) return
+        var byId = {}
+        links.forEach(function (a) { byId[a.getAttribute('href').slice(1)] = a })
+        var visible = {}
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (e) { visible[e.target.id] = e.isIntersecting })
+            var current = null
+            links.forEach(function (a) { var id = a.getAttribute('href').slice(1); if (!current && visible[id]) current = id })
+            if (!current) return
+            links.forEach(function (a) { a.classList.toggle('is-active', a === byId[current]) })
+        }, { rootMargin: '-90px 0px -55% 0px' })
+        Object.keys(byId).forEach(function (id) { var el = document.getElementById(id); if (el) io.observe(el) })
+    })()
+    </script>
     <script src="./site-menu.js"></script>
 </body>
 </html>
